@@ -106,38 +106,205 @@ Aegis implements an asymmetric, dual-stage predictive pipeline explicitly engine
 
 ---
 
-## 3. Resolving the Inter-State Fraud Dilemma
+## SECTION 1: EXTRACTED INTELLIGENCE DOCTRINE & OPERATIONAL DOCTRINE
 
-A primary hurdle in Indian cybercrime enforcement is **inter-state jurisdictional delay**:
+### 1. The Core Misconception: Why Victim Location ≠ Cash-Out Location
+* **The Root Cause:** Organized cybercrime syndicates decouple the victim acquisition layer from the physical cash liquidation layer. A victim losing money in Chennai while a cash runner extracts notes from an ATM in Goa is standard operational tradecraft.
+* **The Algorithmic Failure:** Any model that queries for ATMs in proximity to the victim’s location in Chennai will fail 100% of the time.
+* **The Paradigm Shift:** The victim's geographic location is exclusively treated as the incident root node ($v_0$). The predictive framework tracks the terminating mule entity ($v_k$) where physical cashout occurs.
+
+### 2. The Three Telemetric Bridges Connecting Chennai to Goa
+The predictive framework shifts its spatial search centroid from Chennai to Goa using three digital and financial telemetry vectors:
+1. **Device & App Telemetry (Real-Time Sensor Anchor):** Layer-3 and Layer-4 mules access mobile banking or UPI applications to verify fund arrival before traveling to an ATM. That app login emits network telemetry (IP subnet, ISP operating circle, BTS cell-tower ping) originating from a telecom circle in Goa, instantly resetting the spatial search anchor to that territory.
+2. **Mule KYC & Debit Node (Structural Spatial Anchor):** Terminating accounts receiving split funds typically have branch records, registered residential addresses, or debit card delivery PIN codes mapped to specific geographic clusters (e.g., Margao, Panaji).
+3. **Syndicate Behavioral Footprint (Graph ML Spatial Anchor):** Syndicates operate across repeatable laundering corridors. Graph embeddings (Node2Vec / GraphSAGE) link entry nodes in Chennai to historical complaint subgraphs that consistently liquidate in high-turnover tourist and commercial corridors.
+
+### 3. Adversary Rationale: Why Syndicates Cash Out in Destinations Like Goa
+Adversary behavioral modeling shows syndicates favor tourist corridors due to three operational advantages:
+* **High ATM Liquidity:** Tourist and entertainment corridors feature heavily stocked ATMs with frequent cash replenishment schedules.
+* **Transient Crowd Anonymity:** A mule runner conducting multiple rapid withdrawals with structured debit cards blends into dense tourist foot traffic without alerting local security or bank staff.
+* **Exploitation of Inter-State Jurisdictional Friction:** Syndicates rely on the fact that local police (e.g., Tamil Nadu Police) face jurisdictional boundaries, inter-state transit permissions, and manual coordination delays that traditionally take days to resolve.
+
+### 4. How Aegis Solves the Cross-Border Problem
+* **Decoupled Jurisdictional Alerting:** Because the system operates centrally at the national I4C / NCRP telemetry layer, it bypasses inter-state administrative friction. The moment a target H3 hexagon in Goa is forecasted, the system issues an automated dispatch payload directly to the Goa Police Emergency Response Support System (ERSS Dial 112) CAD console.
+* **Targeted Digital Containment (Card-Session Layer):** Aegis triggers an immediate API request to the NPCI / Core Banking Switch, deploying a 15-minute micro-delay or dynamic step-up authentication hold on the specific card session. The physical ATM remains 100% operational for the public, while the runner's transaction is stalled, eliminating their escape margin.
+
+### 5. SIH Evaluation Jury Defense Pitch
+> *"Our model does not look for ATMs near the victim. In over 90% of organized cyber financial crimes, victims and cash-out points are separated by hundreds or thousands of kilometers. Aegis uses the victim complaint strictly as the root node to traverse the multi-hop mule graph. The spatial ranker dynamically anchors on the terminating mule account's digital telemetry, device IP cluster, and syndicate graph patterns—in this case, forecasting the cash-out in Goa while alerting Goa's Dial 112 CAD within milliseconds of a report filed in Chennai."*
+
+---
+
+## SECTION 2: MATHEMATICAL FORMULATIONS
 
 ```
- [ VICTIM STATE ]                      [ CENTRAL TELEMETRY ]                  [ TARGET EXTRACTION STATE ]
- State Police (e.g., Maharashtra)        I4C / NCRP Central Hub                 State Police (e.g., Delhi Police)
-         │                                         │                                            │
-         │ Citizen calls 1930                      │                                            │
-         │ Logs complaint in Mumbai                │                                            │
-         └────────────────────────────────────────►│                                            │
-                                                   │ Real-time API Stream                       │
-                                                   │ (Sub-50ms Graph Ingestion)                 │
-                                                   ▼                                            │
-                                         [ AEGISCASHOUT ENGINE ]                                │
-                                         - Detects L3 Mule at Rohini                            │
-                                         - Resolves H3 Hex: 886196a603fffff                     │
-                                         - Pins Terminal: AXIS-ROH-091                          │
-                                                   │                                            │
-                                                   │ Direct Automated Machine-to-Machine Bridge │
-                                                   │ (Bypasses Inter-State Police Mails/MOU)    │
-                                                   └───────────────────────────────────────────►│
-                                                                                                │ Direct CAD Injection
-                                                                                                ▼
-                                                                                   [ DIAL 112 ERSS CONSOLE ]
-                                                                                   - Dispatches BEAT-PCR-ROHINI-4
-                                                                                   - ETA: 5.2 Minutes
-                                                                                   - Intercept Prior to Cashout
+[Victim Anchor: Chennai]
+           │
+           ▼ (Graph Traversal & Telemetry Fusion)
+[1. Dynamic Spatial Anchor Transition (MAP Estimation)] ──> Shifts centroid to Goa
+           │
+           ▼
+[2. Syndicate Corridor Transition (Bilinear Interaction)] ──> Weighs regional probability
+           │
+           ▼
+[3. Cross-Border Adversary Utility Scoring (Runner Logic)] ──> Ranks local H3 cells & ATMs
+           │
+           ▼
+[4. Two-Condition Sequential Interdiction Dependency] ──> Digital Hold enables Physical Intercept
 ```
 
-* **The Problem:** A victim reports in State A (e.g., Chennai or Mumbai). The stolen money hops across banks in Maharashtra, Karnataka, and Uttar Pradesh, but the physical cashout is executed in State B (e.g., Rohini Sector 16, Delhi or Nuh, Haryana). Traditional inter-state requisition notices take days to traverse state police headquarters.
-* **The Aegis Bridge:** Aegis acts as a real-time, automated operational bridge. It converts central NCRP complaint telemetry directly into standardized **Dial 112 Emergency Response Support System (ERSS) Computer-Aided Dispatch (CAD)** payloads for the destination jurisdiction. The field patrol in Rohini receives the exact target ATM terminal and vehicle coordinates within seconds of the victim's call, eliminating bureaucratic friction.
+### 1. Dynamic Spatial Anchor Transition (Bayesian Telemetry Fusion)
+Instead of searching near the victim $\mathbf{x}_{\text{victim}} \in \mathbb{R}^2$, the search anchor $\mathbf{x}_{\text{anchor}}$ shifts to the geographic footprint of the terminating mule node $v_k$ via Maximum A Posteriori (MAP) estimation across all digital and structural telemetry sensors $\mathcal{S} = \{\text{IP\_Subnet}, \text{Cell\_BTS}, \text{Branch\_KYC}, \text{Historical\_ATM}\}$:
+
+$$\mathbf{x}_{\text{anchor}} = \arg\max_{\mathbf{x}} \sum_{s \in \mathcal{S}} \omega_s \cdot \exp\left( -\frac{1}{2} (\mathbf{x} - \boldsymbol{\mu}_s)^T \boldsymbol{\Sigma}_s^{-1} (\mathbf{x} - \boldsymbol{\mu}_s) \right)$$
+
+Where:
+* $\boldsymbol{\mu}_s \in \mathbb{R}^2$ represents the geographic coordinate vector (latitude, longitude) of sensor $s$ (e.g., cell tower location in Calangute or bank branch in Margao).
+* $\boldsymbol{\Sigma}_s \in \mathbb{R}^{2 \times 2}$ is the sensor-specific spatial covariance error matrix ($\boldsymbol{\Sigma}_{\text{BTS}}$ is localized to $\sim 500\text{ m}$, whereas $\boldsymbol{\Sigma}_{\text{IP}}$ covers $\sim 5\text{ km}$).
+* $\omega_s$ is the dynamic reliability weight satisfying $\sum_{s \in \mathcal{S}} \omega_s = 1$.
+
+### 2. Syndicate Corridor Transition Probability (Graph ML Interaction)
+Let $\mathbf{z}_{S} \in \mathbb{R}^d$ be the structural graph embedding (e.g., GraphSAGE / Node2Vec) of the active laundering subgraph, and let $\mathbf{z}_{R_j} \in \mathbb{R}^d$ denote the learned territorial profile of target region $R_j$ (e.g., North Goa Coastal Belt). The cross-border transition probability under specific fraud modus $M$ is:
+
+$$P(R_j \mid \mathcal{G}, M) = \frac{\exp\left( \mathbf{z}_S^T \mathbf{W}_M \mathbf{z}_{R_j} \right)}{\sum_{l \in \mathcal{R}} \exp\left( \mathbf{z}_S^T \mathbf{W}_M \mathbf{z}_{R_l} \right)}$$
+
+Where:
+* $\mathbf{W}_M \in \mathbb{R}^{d \times d}$ is a learned bilinear routing weight matrix specific to fraud modus $M$ (e.g., `DIGITAL_ARREST`, `INVESTMENT_SCAM`).
+* $\mathcal{R}$ is the universe of all state/metro police jurisdictions.
+
+### 3. Mule Velocity Decay Formulation ($\mathcal{V}_k$)
+Transaction velocity decreases exponentially as funds fragment across multiple intermediary accounts and encounter banking batch settlement delays:
+
+$$\mathcal{V}_k = \left( \prod_{i=1}^{k} \frac{A_i}{A_{i-1}} \right) \cdot \exp\left( -\lambda \sum_{i=1}^{k} \Delta t_i \right) \cdot \left[ 1 - \tanh\left( \gamma \cdot \frac{\text{Out-Degree}}{\text{In-Degree}} \right) \right]$$
+
+### 4. Cross-Border Mule Runner Utility Function
+To model runner selection of high-yield commercial terminals over low-activity kiosks, the utility $U_m(a)$ of cash-out terminal $a \in \mathcal{A}$ within the target state is:
+
+$$U_m(a) = w_1 \cdot \psi_{\text{dist}}(d(\mathbf{x}_{\text{anchor}}, x_a)) + w_2 \cdot \psi_{\text{liq}}(L_a) + w_3 \cdot \mathcal{E}_{\text{crowd}}(a) + w_4 \cdot \mathcal{J}(x_a, \mathbf{x}_{\text{victim}}) - w_5 \cdot \psi_{\text{police}}(x_a, \mathcal{P}_{\text{local}})$$
+
+Where:
+1. **Spatial Distance Attenuation:** $\psi_{\text{dist}}(d(\mathbf{x}_{\text{anchor}}, x_a)) = \exp\left( -\frac{d(\mathbf{x}_{\text{anchor}}, x_a)^2}{2\sigma_d^2} \right)$ evaluates physical distance relative to the mule's newly anchored location in Goa.
+2. **Liquidity Attractiveness:** $\psi_{\text{liq}}(L_a) = \frac{1}{1 + \exp\left( -\kappa \cdot \left( \frac{L_a}{A_{\text{target}}} - 1 \right) \right)}$ rewards terminals with high cash reserves ($L_a$) matching the target withdrawal sum ($A_{\text{target}}$).
+3. **Crowd Anonymity Factor:** $\mathcal{E}_{\text{crowd}}(a) = -\sum_{c} p_c \log p_c$ measures foot-traffic entropy in transient commercial areas, reflecting lower risk of detection for repetitive withdrawals.
+4. **Jurisdictional Friction Exploitation:** $\mathcal{J}(x_a, \mathbf{x}_{\text{victim}}) = \tanh\left( \frac{\mathcal{D}_{\text{state\_border}}(x_a, \mathbf{x}_{\text{victim}})}{\delta_{\text{jurisdiction}}} \right)$ quantifies distance from the victim's originating police boundary, capturing the operational benefit of cross-border jurisdictional delays.
+5. **Local Police Proximity Penalty:** $\psi_{\text{police}}(x_a, \mathcal{P}_{\text{local}}) = \sum_{p \in \mathcal{P}_{\text{local}}} \frac{1}{1 + \left( \frac{d(x_a, p)}{R_{\text{patrol}}} \right)^2}$ penalizes terminals close to local beat patrols and police stations.
+
+### 5. Two-Condition Sequential Interdiction Dependency (Corrected Race Condition)
+Physical apprehension is successful if and only if both conditions are satisfied sequentially:
+
+$$\begin{cases} 
+1. \quad T_{\text{digital\_freeze}} < \hat{\Delta t} & \text{(Condition 1: Digital Pre-emption)} \\[1.5ex] 
+2. \quad T_{\text{physical\_dispatch}} < \hat{\Delta t} + \left(\mathbb{I}_{\text{freeze}} \cdot \tau_{\text{friction}}\right) & \text{(Condition 2: Physical Intercept)} 
+\end{cases}$$
+
+Where the binary indicator $\mathbb{I}_{\text{freeze}}$ is defined as:
+$$\mathbb{I}_{\text{freeze}} = \begin{cases} 1 & \text{if } T_{\text{digital\_freeze}} < \hat{\Delta t} \quad \land \quad \text{API\_Status} = \text{SUCCESS} \\[1ex] 0 & \text{if API fails, times out, or runner arrives before call completes} \end{cases}$$
+
+And total physical patrol response latency is:
+$$T_{\text{physical\_dispatch}} = t_{\text{CAD\_route}} + \frac{d(\text{PCR}_{\text{unit}}, x_a)}{v_{\text{patrol}}}$$
+
+#### The 4-State Operational Decision Matrix
+```
+                          [Digital Freeze Attempt]
+                                     │
+                 ┌───────────────────┴───────────────────┐
+                 ▼ (Success: I_freeze = 1)               ▼ (Failure: I_freeze = 0)
+        [Window Extended by +15m]                [Natural Window Only]
+                 │                                       │
+         ┌───────┴───────┐                       ┌───────┴───────┐
+         ▼               ▼                       ▼               ▼
+     ETA < Window    ETA >= Window           ETA < Window    ETA >= Window
+   [OPTIMAL INTER.] [ASSET PRESERVED]       [KINETIC INT.]  [FAILED CRIME]
+```
+
+| State | Condition $\mathbb{I}_{\text{freeze}}$ (Digital) | Condition $T_{\text{physical\_dispatch}}$ (Physical) | Operational Classification | Tactical Outcome |
+| :---: | :---: | :---: | :---: | :--- |
+| **State 1** | **$1$** | $< \hat{\Delta t} + \tau_{\text{friction}}$ | **`OPTIMAL_INTERDICTION`** | **Funds Secured + Runner Apprehended On-Site**. Card session hold stalled runner; PCR arrives in time for physical arrest. |
+| **State 2** | **$1$** | $\ge \hat{\Delta t} + \tau_{\text{friction}}$ | **`ASSET_PRESERVED_ONLY`** | **Funds Saved, Runner Escapes**. Card rejected under Sec 106 BNSS. Runner flees before police arrive. |
+| **State 3** | **$0$** | $< \hat{\Delta t}$ | **`KINETIC_INTERCEPT`** | **Direct Physical Capture**. Digital freeze failed, but nearby beat patrol intercepts runner mid-transaction. |
+| **State 4** | **$0$** | $\ge \hat{\Delta t}$ | **`INTERDICTION_FAILED`** | **Extraction Consummated**. Cash drawn; case transitions to post-incident recovery under **Section 107 BNSS**. |
+
+---
+
+## SECTION 3: HOW THE PROTOTYPE WORKS (END-TO-END SYSTEM EXECUTION)
+
+```
+[1. 1930 NCRP Ingestion] ──> Chennai: Incident Root Node (v0)
+           │
+           ▼
+[2. Graph Traversal & Telemetric Shift] ──> IP / Tower / Branch points to Goa
+           │
+           ▼
+[3. Dual-Stage ML Inference] ──> Stage 1: Window (22.4m) | Stage 2: H3 Hexes & ATMs
+           │
+           ▼
+[4. Explainability Engine] ──> SHAP generates Sec 106 & Sec 107 BNSS Dockets
+           │
+           ▼
+[5. Automated Dual Interdiction] 
+   ├── Digital: Bank Switch API locks card session (15m delay, Sec 106 BNSS)
+   └── Physical: Direct API dispatch to Goa Police Dial 112 CAD Console
+           │
+           ▼
+[6. LEA Command Interface] ──> Real-time countdown & 4-state outcome tracking
+```
+
+### Step 1: Incident Ingestion at Origin Point
+* A victim calls the 1930 Cyber Fraud Helpline in Chennai, reporting an immediate loss of ₹7,50,000 to a "Digital Arrest" scam.
+* The complaint hits `POST /api/v1/complaints/ingest`. The ingestion engine records the victim's location in Chennai strictly as the root node ($v_0$), initializing the directed transaction graph without restricting the search space to Tamil Nadu.
+
+### Step 2: In-Memory Graph Unfolding & Telemetric Anchor Re-Centering
+* As CFCFRMS transaction webhooks arrive at `POST /api/v1/transactions/hook`, the in-memory directed multigraph (`features/graph_engine.py`) builds the downstream fund propagation path:
+  - **Layer 1 (Entry Mule):** Stolen funds are split into Layer 2 accounts within 6 minutes.
+  - **Layer 2 → Layer 3 (Peeling Chain):** Funds are broken into structured amounts under ₹50,000 and routed to Layer 3 accounts equipped with active debit cards.
+* The Spatial Anchor Transition module inspects the terminating mule account:
+  - An app-based balance inquiry generates network telemetry with an IP address routed through a telecom circle in Goa.
+  - The mule debit card's registered home branch maps to a South Goa PIN code.
+* The spatial anchor $\mathbf{x}_{\text{anchor}}$ shifts from Chennai to Goa.
+
+### Step 3: Dual-Stage ML Inference Engine
+With the search centroid reset to Goa:
+1. **Stage 1 (Temporal Engine):** A LightGBM regressor evaluates peeling variance, hop latency, and transaction velocity decay ($\mathcal{V}_k$), computing:
+   $$\text{Predicted Natural Cashout Window } (\hat{\Delta t}) = 22.4 \text{ minutes}$$
+2. **Stage 2 (Spatial Ranking Engine):**
+   - A kinematic reachability isochrone identifies all Uber H3 cells (Resolution 8) reachable from the Goa telemetry anchor within travel limits.
+   - The Spatial Ranker scores candidate cells using the Adversary Utility Function, outputting the Top-3 target H3 hexagons and pinpointing specific cash-dispense terminals (e.g., an off-site commercial ATM in Calangute).
+
+### Step 4: Real-Time Explainability & Statutory Legal Briefing
+`ml_models/explainer.py` uses `shap.TreeExplainer` to calculate local feature attributions, mapping them to the proper procedural and substantive penal codes:
+* **Procedural Orders under the Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023:**
+  - **Section 106 BNSS Order:** Orders an immediate card-session debit freeze and switch latency loop, citing positive SHAP factors (High Peeling Velocity: +0.38, Proximity to NH-66 Corridor: +0.29, Layer-3 Telemetry Nexus: +0.22).
+  - **Section 107 BNSS Dossier:** Compiles an automated attachment report for the jurisdictional Magistrate, identifying terminating accounts as direct proceeds of crime.
+* **Substantive Penal Grounding under Bharatiya Nyaya Sanhita (BNS) & IT Act:**
+  - Offenses are formally categorized under **Section 318(4) (Cheating) & Section 319 (Cheating by personation) of the Bharatiya Nyaya Sanhita (BNS), 2023**, read with **Section 66D of the Information Technology Act, 2000**.
+
+### Step 5: Automated Dual Interdiction Execution
+The framework immediately executes two simultaneous interventions:
+1. **Targeted Digital Pre-emption (Card-Session Layer):**
+   - `POST /api/v1/bank/friction` sends an automated directive to the NPCI / Bank Core Switch under Section 106 BNSS.
+   - The switch applies a $\tau_{\text{friction}} = 15.0\text{ minute}$ session-level latency hold and requires dynamic step-up authentication exclusively on the suspect debit card.
+   - **Public Availability Preserved:** The ATM kiosk remains 100% operational for all ordinary citizens; only the suspect card transaction is stalled.
+   - Digital pre-emption succeeds ($T_{\text{digital\_freeze}} = 1.4\text{ s} < 22.4\text{ m}$), setting $\mathbb{I}_{\text{freeze}} = 1$.
+   - The effective physical intercept window expands to $22.4 + 15.0 = 37.4\text{ minutes}$.
+2. **Physical Intercept via Decoupled ERSS Dial 112 Dispatch:**
+   - Bypassing manual inter-state coordination, `POST /api/v1/dispatch/dial112` pushes an automated dispatch payload directly to the Goa Police Dial 112 CAD console.
+   - The nearest PCR van (stationed $4.2\text{ km}$ away) is assigned to the Calangute ATM.
+   - Calculated travel time:
+     $$T_{\text{physical\_dispatch}} = 1.5\text{ m (CAD route)} + 7.2\text{ m (transit)} = 8.7\text{ minutes}$$
+
+### Step 6: Command Center Visualization & Resolution
+* The interdiction engine evaluates the two-condition sequential dependency:
+  $$\begin{cases} 
+  1.4\text{ seconds} < 22.4\text{ minutes} & \implies \mathbb{I}_{\text{freeze}} = 1 \quad (\text{Digital Hold Active}) \\[1.5ex] 
+  8.7\text{ minutes} < 37.4\text{ minutes} & \implies \text{Condition Met (Margin: } +28.7\text{ minutes)} 
+  \end{cases}$$
+* The system classifies the incident as **`OPTIMAL_INTERDICTION`**.
+* The tactical command dashboard displays:
+  - An animated curved arc tracing funds moving from the victim in Chennai to the target terminal in Goa.
+  - A highlighted H3 hexagon over Calangute.
+  - A dynamic countdown timer tracking the extended window ($37\text{m } 24\text{s}$).
+  - A real-time patrol dispatch status banner confirming PCR arrival and physical apprehension of the runner at the kiosk before any cash is dispensed.
+
+---
 
 ---
 

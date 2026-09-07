@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { cellToBoundary } from "h3-js";
+import { Crosshair } from "lucide-react";
 import { Prediction, BeatUnit } from "../types";
 
 interface TacticalMapProps {
@@ -19,6 +20,13 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+  const lastFlownComplaintIdRef = useRef<string | null>(null);
+  const [mapCenterInfo, setMapCenterInfo] = useState({
+    lat: 28.6139,
+    lon: 77.2090,
+    zoom: 11,
+  });
+
   const layersRef = useRef<{
     polygons: any[];
     atms: any[];
@@ -30,6 +38,17 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
     flows: [],
     police: [],
   });
+
+  // Recenter map on the currently selected prediction
+  const handleRecenter = useCallback(() => {
+    if (!mapInstanceRef.current || !selectedPrediction) return;
+    const targetCell = selectedPrediction.primary_target_cell;
+    if (targetCell?.lat && targetCell?.lon) {
+      mapInstanceRef.current.flyTo([targetCell.lat, targetCell.lon], 13, {
+        duration: 1.0,
+      });
+    }
+  }, [selectedPrediction]);
 
   // Initialize Leaflet Map
   useEffect(() => {
@@ -48,11 +67,21 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
         attributionControl: false,
       });
 
-      // CartoDB Dark Matter Tiles (No API key required)
+      // CartoDB Dark Matter Tiles (Public OpenStreetMap-based tiles, zero API key required)
       L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
         maxZoom: 18,
         subdomains: "abcd",
       }).addTo(map);
+
+      // Track pan and zoom movements for live HUD coordinates
+      map.on("moveend", () => {
+        const center = map.getCenter();
+        setMapCenterInfo({
+          lat: parseFloat(center.lat.toFixed(4)),
+          lon: parseFloat(center.lng.toFixed(4)),
+          zoom: map.getZoom(),
+        });
+      });
 
       mapInstanceRef.current = map;
       renderAllLayers(L);
@@ -67,24 +96,52 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
     };
   }, []);
 
-  // Re-render layers whenever predictions, selected prediction, or beat units change
+  // Invalidate map size when container width/height changes (e.g. sidebar open/close)
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const observer = new ResizeObserver(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    });
+    observer.observe(mapContainerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Memoized layer cache keys so the 1-second countdown tick doesn't tear down & recreate Leaflet layers
+  const predictionsSummary = predictions
+    .map((p) => `${p.complaint_id}:${p.target_h3_res8}:${p.confidence_score}`)
+    .join("|");
+  const selectedComplaintId = selectedPrediction?.complaint_id || "";
+  const beatUnitsSummary = beatUnits
+    .map((u) => `${u.unit_id}:${u.status}`)
+    .join("|");
+
+  // Re-render layers ONLY when predictions, selected prediction ID, or beat units actually change
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     import("leaflet").then((L) => {
       renderAllLayers(L);
     });
-  }, [predictions, selectedPrediction, beatUnits]);
+  }, [predictionsSummary, selectedComplaintId, beatUnitsSummary]);
 
-  // Smooth camera fly-to when selected prediction changes
+  // Smooth camera fly-to ONLY when selected complaint ID changes (prevents snapping back on countdown tick)
   useEffect(() => {
     if (!mapInstanceRef.current || !selectedPrediction) return;
+
+    // Do NOT re-fly if it's the exact same complaint whose countdown seconds simply ticked
+    if (lastFlownComplaintIdRef.current === selectedPrediction.complaint_id) {
+      return;
+    }
+
+    lastFlownComplaintIdRef.current = selectedPrediction.complaint_id;
     const targetCell = selectedPrediction.primary_target_cell;
     if (targetCell?.lat && targetCell?.lon) {
       mapInstanceRef.current.flyTo([targetCell.lat, targetCell.lon], 13, {
-        duration: 1.5,
+        duration: 1.2,
       });
     }
-  }, [selectedPrediction]);
+  }, [selectedPrediction?.complaint_id]);
 
   // Comprehensive layer rendering function
   const renderAllLayers = (L: any) => {
@@ -322,11 +379,22 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
       <div ref={mapContainerRef} className="w-full h-full" id="tactical-map" />
 
       {/* Tactical Map Overlay HUD: Coordinates & Compass */}
-      <div className="absolute top-4 right-4 z-20 pointer-events-none flex flex-col items-end space-y-2">
-        <div className="bg-tactical-panel/90 border border-tactical-border px-3 py-1.5 rounded text-[11px] font-mono text-slate-300 backdrop-blur shadow-md">
-          <span className="text-tactical-cyan">GRID:</span> DELHI-NCR UTM-43N | LAT: 28.6139 | LON: 77.2090
+      <div className="absolute top-4 right-4 z-20 pointer-events-auto flex flex-col items-end space-y-2">
+        <div className="bg-tactical-panel/95 border border-tactical-border px-3 py-1.5 rounded text-[11px] font-mono text-slate-300 backdrop-blur shadow-md flex items-center space-x-2">
+          <span className="text-tactical-cyan font-bold">GRID:</span>
+          <span>NCR | LAT: {mapCenterInfo.lat} | LON: {mapCenterInfo.lon} | Z: {mapCenterInfo.zoom}</span>
+          {selectedPrediction && (
+            <button
+              onClick={handleRecenter}
+              className="ml-2 px-2 py-0.5 bg-tactical-cyan/15 hover:bg-tactical-cyan/25 border border-tactical-cyan/40 hover:border-tactical-cyan text-tactical-cyan rounded text-[10px] font-mono font-bold flex items-center space-x-1 transition-all cursor-pointer shadow-sm"
+              title="Recenter Camera on Active Target Hotspot"
+            >
+              <Crosshair className="w-3 h-3" />
+              <span>RECENTER</span>
+            </button>
+          )}
         </div>
-        <div className="bg-tactical-panel/90 border border-tactical-border px-3 py-1 rounded text-[10px] font-mono text-tactical-amber backdrop-blur shadow-md">
+        <div className="bg-tactical-panel/95 border border-tactical-border px-3 py-1 rounded text-[10px] font-mono text-tactical-amber backdrop-blur shadow-md">
           TACTICAL RESOLUTION: H3 RES 8 (AREA ~0.737 km²)
         </div>
       </div>

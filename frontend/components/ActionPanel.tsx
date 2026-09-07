@@ -79,7 +79,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
   };
 
   return (
-    <div className="absolute top-20 right-4 z-20 w-[420px] max-h-[calc(100vh-100px)] bg-tactical-panel/95 border border-tactical-border rounded-xl backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden select-none">
+    <div className="w-[420px] xl:w-[450px] flex-shrink-0 h-full bg-tactical-panel border-l border-tactical-border flex flex-col z-20 overflow-hidden select-none shadow-2xl">
       {/* Panel Header */}
       <div className="p-3.5 border-b border-tactical-border bg-tactical-card/60 flex items-center justify-between">
         <div className="flex items-center space-x-2">

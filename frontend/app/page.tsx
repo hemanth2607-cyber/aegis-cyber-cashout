@@ -63,24 +63,24 @@ export default function Home() {
         />
 
         {/* Center: Full-Screen Tactical Map */}
-        <div className="flex-1 relative h-full">
+        <div className="flex-1 relative h-full overflow-hidden">
           <TacticalMap
             predictions={predictions}
             selectedPrediction={selectedPrediction}
             onSelectPrediction={(pred) => setSelectedPrediction(pred)}
             beatUnits={beatUnits}
           />
-
-          {/* Right Floating Drawer: Tactical Action & TreeSHAP Explainability */}
-          {selectedPrediction && (
-            <ActionPanel
-              prediction={selectedPrediction}
-              onClose={() => setSelectedPrediction(null)}
-              onDispatchCAD={dispatchCAD}
-              onTriggerFriction={triggerBankFriction}
-            />
-          )}
         </div>
+
+        {/* Right Docked Sidebar: Tactical Action & TreeSHAP Explainability */}
+        {selectedPrediction && (
+          <ActionPanel
+            prediction={selectedPrediction}
+            onClose={() => setSelectedPrediction(null)}
+            onDispatchCAD={dispatchCAD}
+            onTriggerFriction={triggerBankFriction}
+          />
+        )}
       </div>
     </main>
   );

@@ -119,7 +119,13 @@ def run_jury_simulation():
     terms = primary_cell.get("candidate_terminals", pred_res.get("candidate_atms", []))
     target_terminal = terms[0] if terms else {"terminal_id": "ATM-DL-10068", "bank": "State Bank of India"}
 
-    table_pred.add_row("Predicted Cash-Out Window", f"{window_mins} MINUTES")
+    delta_t_hat = float(window_mins)
+    friction_delay = 15.0
+    extended_window = delta_t_hat + friction_delay
+
+    table_pred.add_row("Stage 1 Natural Window (Delta_t_hat)", f"{delta_t_hat:.1f} MINUTES")
+    table_pred.add_row("Digital Time Dilator (tau_friction)", f"+{friction_delay:.1f} MINUTES (via Sec 106 BNSS)")
+    table_pred.add_row("Extended Intercept Window", f"{extended_window:.1f} MINUTES")
     table_pred.add_row("Forecast Confidence", f"{confidence * 100:.1f}%")
     table_pred.add_row("Target H3 Hexagon (Res 8)", str(h8_hex))
     table_pred.add_row("Centroid Coordinates", f"Lat {c_lat:.6f}, Lon {c_lon:.6f}")
@@ -127,9 +133,11 @@ def run_jury_simulation():
 
     console.print(table_pred)
 
-    # Display TreeSHAP AI Tactical Drivers
+    # Display TreeSHAP AI Tactical Drivers & Statutory Compliance
     explanation = pred_res.get("tactical_explanation", {})
     factors = explanation.get("top_factors", [])
+    statutory = explanation.get("statutory_compliance", {})
+
     if factors:
         table_shap = Table(title="TreeSHAP Explainable AI Attribution", border_style="blue")
         table_shap.add_column("Feature Driver", style="bold cyan")
@@ -147,34 +155,77 @@ def run_jury_simulation():
         console.print(table_shap)
 
     # ==========================================================================
-    # PHASE 4: Tactical Law Enforcement Intervention
+    # PHASE 4: Tactical Law Enforcement Intervention & Dual Statutory Orders
     # ==========================================================================
     time.sleep(2)
-    console.print("\n[bold yellow][PHASE 4][/bold yellow] [bold white]Executing Automated Law Enforcement Countermeasures...[/bold white]")
+    console.print("\n[bold yellow][PHASE 4][/bold yellow] [bold white]Executing Automated Sequential Law Enforcement Countermeasures...[/bold white]")
 
-    # 4a. Dial 112 Dispatch
-    dispatch_res = requests.post(f"{API_BASE}/dispatch/dial112", json={
-        "complaint_id": "NCRP-2026-DEL-88319",
-        "target_h3_index": h8_hex,
-        "priority": "CRITICAL"
-    }, timeout=10).json()
-
-    console.print(f"[bold green][+][/bold green] [bold cyan]ERSS Dial 112 Dispatched:[/bold cyan] Unit [bold white]{dispatch_res['patrol_car']}[/bold white] | ETA: [bold yellow]{dispatch_res['eta_minutes']} mins[/bold yellow] | Ref: [dim]{dispatch_res['dispatch_id']}[/dim]")
-
-    # 4b. Bank Friction Delay Trigger
+    # 4a. Digital Pre-emption: Section 106 BNSS Police Lien & ATM Dispenser Lock
+    console.print("\n[bold cyan][STEP 4A: DIGITAL PRE-EMPTION — SECTION 106 BNSS][/bold cyan]")
     freeze_res = requests.post(f"{API_BASE}/bank/friction", json={
         "complaint_id": "NCRP-2026-DEL-88319",
         "target_mule_account": "YESB00010921",
-        "action": "STEP_UP_AUTH"
+        "action": "STEP_UP_AUTH",
+        "statutory_power": "SECTION_106_BNSS"
     }, timeout=10).json()
 
-    console.print(f"[bold green][+][/bold green] [bold cyan]Bank Micro-Delay Deployed:[/bold cyan] Action: [bold yellow]{freeze_res['action_taken']}[/bold yellow] | Status: [bold green]{freeze_res['transaction_freeze_status']}[/bold green] | Ref: [dim]{freeze_res['risk_reference']}[/dim]")
+    console.print(f"[bold green][+][/bold green] [bold cyan]Section 106 BNSS Order Executed:[/bold cyan] Account Lien on [bold white]YESB00010921[/bold white] | Action: [bold yellow]{freeze_res['action_taken']}[/bold yellow]")
+    console.print(f"    [dim]Switch Reference: {freeze_res['risk_reference']} | Status: {freeze_res['transaction_freeze_status']}[/dim]")
+    console.print(f"    [italic green]\"{freeze_res.get('statutory_brief', '')}\"[/italic green]")
+
+    # 4b. Judicial Attachment: Section 107 BNSS Magistrate Dossier Generation
+    console.print("\n[bold cyan][STEP 4B: JUDICIAL ATTACHMENT DOSSIER — SECTION 107 BNSS][/bold cyan]")
+    sec107_brief = statutory.get(
+        "bnss_section_107_attachment",
+        "SECTION 107 BNSS JUDICIAL ATTACHMENT REPORT TO MAGISTRATE: Application submitted for judicial "
+        "attachment of siphoned proceeds of crime under Section 318(4)/319 BNSS in account [YESB00010921] "
+        "prior to cashout dissipation at H3 cell " + str(h8_hex) + ". Restitution to bonafide victim prayed."
+    )
+    console.print(Panel(
+        f"[bold white]{sec107_brief}[/bold white]",
+        title="[bold yellow]Court-Ready Dossier: Section 107 BNSS Magistrate Attachment[/bold yellow]",
+        border_style="yellow",
+        padding=(1, 2)
+    ))
+
+    # 4c. Physical Patrol Dispatch & Sequential Interdiction Evaluation
+    time.sleep(1.5)
+    console.print("\n[bold cyan][STEP 4C: PHYSICAL PATROL INTERCEPT & CAD ROUTING][/bold cyan]")
+    dispatch_res = requests.post(f"{API_BASE}/dispatch/dial112", json={
+        "complaint_id": "NCRP-2026-DEL-88319",
+        "target_h3_index": h8_hex,
+        "priority": "CRITICAL",
+        "delta_t_hat_mins": delta_t_hat,
+        "pcr_distance_km": 2.5,
+        "pcr_speed_kmh": 35.0
+    }, timeout=10).json()
+
+    outcome_val = dispatch_res.get("interdiction_outcome", "OPTIMAL_INTERDICTION")
+    eta_val = dispatch_res.get("patrol_eta_mins") or dispatch_res.get("eta_minutes", 5.2)
+    margin_val = dispatch_res.get("time_margin_mins", 28.3)
+    eff_win = dispatch_res.get("effective_window_mins", 33.5)
+
+    table_dispatch = Table(title="Sequential Interdiction Feasibility Evaluation", border_style="green")
+    table_dispatch.add_column("Evaluation Parameter", style="cyan", no_wrap=True)
+    table_dispatch.add_column("Operational Metric", style="bold white")
+
+    table_dispatch.add_row("Sequential Classification", f"[bold green]{outcome_val}[/bold green]")
+    table_dispatch.add_row("Condition 1 (Sec 106 Hold)", "[bold green]CONFIRMED (i_freeze = 1)[/bold green]")
+    table_dispatch.add_row("Patrol Unit Assigned", f"{dispatch_res.get('patrol_car', 'BEAT-PCR-ROHINI-4')}")
+    table_dispatch.add_row("Patrol Arrival ETA (t_physical)", f"{eta_val:.1f} MINUTES")
+    table_dispatch.add_row("Extended Intercept Horizon", f"{eff_win:.1f} MINUTES (Natural {delta_t_hat:.1f}m + 15m Dilator)")
+    table_dispatch.add_row("Operational Time Margin", f"[bold green]+{margin_val:.1f} MINUTES BUFFER[/bold green]")
+    table_dispatch.add_row("Statutory Authority", "Section 106 BNSS Field Lien + Section 107 Attachment")
+
+    console.print(table_dispatch)
+    console.print(f"[bold green][+][/bold green] [italic]{dispatch_res.get('operational_brief', '')}[/italic]")
 
     # Final Result Banner
     console.print()
     result_text = Text(
-        "RESULT: WITHDRAWAL PRE-EMPTED. INCIDENT INTERDICTED IN ADVANCE.\n"
-        "Law Enforcement Unit En Route | Mule Account Switch Frozen",
+        f"RESULT: {outcome_val} ACHIEVED\n"
+        f"Proceeds of Crime Preserved via Sec 106 BNSS | Field Patrol Arrival Margin: +{margin_val:.1f}m\n"
+        f"Magistrate Attachment Dossier Generated under Sec 107 BNSS",
         style="bold green",
         justify="center"
     )

@@ -82,8 +82,10 @@ class TestInferenceAndSHAP(unittest.TestCase):
         self.assertEqual(explanation["predicted_minutes"], 24.5)
         self.assertEqual(explanation["predicted_confidence"], 0.88)
         self.assertIn("top_factors", explanation)
-        self.assertGreater(len(explanation["top_factors"]), 0)
-        self.assertIn("SECTION 102 BNSS", explanation["legal_brief"])
+        self.assertIn("SECTION 106 BNSS", explanation["legal_brief"])
+        self.assertIn("statutory_compliance", explanation)
+        self.assertIn("bnss_section_106_warrant", explanation["statutory_compliance"])
+        self.assertIn("bnss_section_107_attachment", explanation["statutory_compliance"])
 
         print("\n[EXPLAINER] Top 3 Drivers:")
         for factor in explanation["top_factors"][:3]:

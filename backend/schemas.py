@@ -89,6 +89,10 @@ class PredictionResponse(BaseModel):
     primary_target_cell: Optional[Dict[str, Any]] = None
     top_3_spatial_clusters: Optional[List[Dict[str, Any]]] = None
     tactical_advisory: Optional[str] = None
+    interdiction_outcome: Optional[str] = None
+    effective_window_mins: Optional[float] = None
+    patrol_eta_mins: Optional[float] = None
+    time_margin_mins: Optional[float] = None
 
     model_config = ConfigDict(extra="allow")
 
@@ -98,6 +102,9 @@ class DispatchCADRequest(BaseModel):
     target_h3_index: str
     assigned_patrol_unit_id: Optional[str] = None
     priority: str = Field(default="HIGH", description="Priority level: HIGH or CRITICAL")
+    delta_t_hat_mins: Optional[float] = Field(default=18.5, description="Estimated cashout window")
+    pcr_distance_km: Optional[float] = Field(default=2.8, description="Distance from assigned PCR to target terminal")
+    pcr_speed_kmh: Optional[float] = Field(default=35.0, description="PCR unit transit speed")
 
     model_config = ConfigDict(extra="allow")
 
@@ -109,6 +116,12 @@ class DispatchCADResponse(BaseModel):
     status: str = "DISPATCHED"
     complaint_id: Optional[str] = None
     target_h3: Optional[str] = None
+    interdiction_outcome: Optional[str] = None
+    effective_window_mins: Optional[float] = None
+    patrol_eta_mins: Optional[float] = None
+    time_margin_mins: Optional[float] = None
+    operational_brief: Optional[str] = None
+    statutory_power: Optional[str] = "SECTION_106_BNSS"
 
 
 class BankFrictionRequest(BaseModel):
@@ -118,6 +131,7 @@ class BankFrictionRequest(BaseModel):
         default="STEP_UP_AUTH",
         description="Friction type: STEP_UP_AUTH, TERMINAL_CASH_LIMIT, CARD_FREEZE"
     )
+    statutory_power: Optional[str] = "SECTION_106_BNSS"
 
     model_config = ConfigDict(extra="allow")
 
@@ -127,3 +141,5 @@ class BankFrictionResponse(BaseModel):
     action_taken: str
     risk_reference: str
     target_mule_account: Optional[str] = None
+    statutory_power: str = "SECTION_106_BNSS"
+    statutory_brief: str = "Immediate police debit freeze, account lien, and ATM dispenser rate limiting enacted under Section 106 BNSS."

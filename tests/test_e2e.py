@@ -186,7 +186,7 @@ def test_predictions_query_endpoint(api_client):
 
 
 def test_dispatch_dial112_endpoint(api_client):
-    """Validates /api/v1/dispatch/dial112 CAD dispatch endpoint."""
+    """Validates /api/v1/dispatch/dial112 CAD dispatch endpoint and sequential interdiction evaluation."""
     payload = {
         "complaint_id": "NCRP-E2E-TEST-001",
         "target_h3_index": "883da18da3fffff",
@@ -199,18 +199,24 @@ def test_dispatch_dial112_endpoint(api_client):
     assert "patrol_car" in data
     assert data["eta_minutes"] > 0.0
     assert data["status"] == "DISPATCHED"
+    assert "interdiction_outcome" in data
+    assert "time_margin_mins" in data
+    assert data["statutory_power"] == "SECTION_106_BNSS"
 
 
 def test_bank_friction_endpoint(api_client):
-    """Validates /api/v1/bank/friction core switch trigger endpoint."""
+    """Validates /api/v1/bank/friction core switch trigger endpoint under Section 106 BNSS."""
     payload = {
         "complaint_id": "NCRP-E2E-TEST-001",
         "target_mule_account": "PUNB00012345",
-        "action": "STEP_UP_AUTH"
+        "action": "STEP_UP_AUTH",
+        "statutory_power": "SECTION_106_BNSS"
     }
     response = api_client.post("/api/v1/bank/friction", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert data["transaction_freeze_status"] == "SUCCESS"
     assert data["action_taken"] == "ATM_MICRO_DELAY_15MIN"
-    assert data["risk_reference"].startswith("I4C-BLOCK-")
+    assert data["risk_reference"].startswith("BNSS106-BLOCK-")
+    assert data["statutory_power"] == "SECTION_106_BNSS"
+    assert "statutory_brief" in data

@@ -1,7 +1,7 @@
 """
 TreeSHAP Explainability & Law Enforcement Intelligence Engine
 Computes local Shapley values and transforms complex mathematical attributions into
-actionable, Section 102 BNSS / 65B BSA court-ready tactical briefs.
+actionable, Section 106 & 107 BNSS court-ready tactical briefs.
 """
 
 import os
@@ -91,6 +91,49 @@ class TacticalSHAPExplainer:
         self.s1_explainer = shap.TreeExplainer(self.stage1_model) if self.stage1_model else None
         self.s2_explainer = shap.TreeExplainer(self.stage2_model) if self.stage2_model else None
 
+    def generate_tactical_legal_brief(
+        self,
+        confidence_score: float,
+        predicted_minutes: float,
+        target_h3: str,
+        top_risk_drivers: List[Dict[str, Any]],
+        terminating_account: str = "SUSPECT_MULE_ACCT"
+    ) -> Dict[str, str]:
+        """
+        Generates dual statutory compliance briefs under Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023:
+        1. Section 106 BNSS: Police field order for immediate account lien, UPI freeze, and ATM rate limiting.
+        2. Section 107 BNSS: Formal police application to Magistrate for judicial attachment of proceeds of crime.
+        """
+        primary_driver = (
+            top_risk_drivers[0]["description"]
+            if top_risk_drivers
+            else "Elevated multi-hop velocity decay and off-site dispenser proximity"
+        )
+
+        section_106_warrant = (
+            f"SECTION 106 BNSS POLICE FIELD SEIZURE & LIEN ORDER: "
+            f"Dual-stage TreeSHAP algorithmic inference validates an active cashout trajectory "
+            f"(Confidence: {confidence_score * 100:.1f}%, Horizon: {predicted_minutes:.1f}m) targeting H3 cell {target_h3}. "
+            f"Immediate police lien and debit freeze are hereby invoked under Section 106 BNSS against terminating account "
+            f"[{terminating_account}] and connected payment switches (IMPS/UPI/AePS). Primary risk driver: {primary_driver}. "
+            f"Mandates immediate ATM dispenser rate limiting and card blocking to halt dissipation of siphoned capital."
+        )
+
+        section_107_attachment = (
+            f"SECTION 107 BNSS JUDICIAL ATTACHMENT REPORT TO MAGISTRATE: "
+            f"Formal investigation report submitted pursuant to Section 107 BNSS praying for judicial confirmation "
+            f"of digital attachment and asset freezing regarding proceeds of crime (punishable under Sections 318(4) & 319 BNSS). "
+            f"Forensic telemetry and TreeSHAP attribution substantiate that funds in account [{terminating_account}] "
+            f"originated from cognizable cyber extortion/fraud, with imminent dissipation scheduled at H3 cell {target_h3}. "
+            f"Prayer for confirmation of lien and eventual restitution of funds to the bonafide victim."
+        )
+
+        return {
+            "bnss_section_106_warrant": section_106_warrant,
+            "bnss_section_107_attachment": section_107_attachment,
+            "statutory_power": "SECTION_106_AND_107_BNSS"
+        }
+
     def explain_prediction(
         self,
         graph_features: Dict[str, Any],
@@ -162,13 +205,13 @@ class TacticalSHAPExplainer:
 
         top_factors = top_risk_drivers + top_mitigating
 
-        # Legal Brief under Section 102 BNSS / Section 65B BSA
-        legal_brief = (
-            f"SECTION 102 BNSS / 106 CRPC WARRANT JUSTIFICATION: "
-            f"Dual-stage TreeSHAP machine learning inference indicates high-confidence cashout trajectory "
-            f"(Confidence: {confidence_score * 100:.1f}%) within {predicted_minutes:.1f} minutes at H3 Cell {target_h3}. "
-            f"Primary risk attribution: {top_risk_drivers[0]['description'] if top_risk_drivers else 'Velocity decay acceleration'}. "
-            f"Statutory authority is empowered to place temporary holds on target terminal switches and deploy immediate beat cordons."
+        # Generate Dual Statutory Briefs: Section 106 and Section 107 BNSS
+        statutory_compliance = self.generate_tactical_legal_brief(
+            confidence_score=confidence_score,
+            predicted_minutes=predicted_minutes,
+            target_h3=target_h3,
+            top_risk_drivers=top_risk_drivers,
+            terminating_account=graph_features.get("terminating_account", "SUSPECT_MULE_ACCT")
         )
 
         return {
@@ -176,5 +219,6 @@ class TacticalSHAPExplainer:
             "predicted_confidence": round(float(confidence_score), 2),
             "target_h3_cell": target_h3,
             "top_factors": top_factors,
-            "legal_brief": legal_brief
+            "legal_brief": statutory_compliance["bnss_section_106_warrant"],
+            "statutory_compliance": statutory_compliance
         }

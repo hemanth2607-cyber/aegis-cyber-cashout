@@ -43,7 +43,7 @@ export const TopNav: React.FC<TopNavProps> = ({
               AEGIS<span className="text-tactical-cyan">CASHOUT</span>
             </span>
             <span className="text-[10px] bg-tactical-cyan/10 text-tactical-cyan border border-tactical-cyan/30 px-1.5 py-0.5 rounded font-mono font-semibold uppercase">
-              BNSS 102 Compliant
+              BNSS 106/107 Compliant
             </span>
           </div>
           <p className="text-[11px] text-slate-400 font-mono flex items-center space-x-1">

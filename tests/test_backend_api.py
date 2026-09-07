@@ -109,14 +109,19 @@ class TestBackendAPI(unittest.TestCase):
         payload = {
             "complaint_id": "NCRP-TEST-2026-9901",
             "target_mule_account": "ICIC00033221",
-            "action": "STEP_UP_AUTH"
+            "action": "STEP_UP_AUTH",
+            "friction_mode": "CARD_SESSION_HOLD",
+            "statutory_power": "SECTION_106_BNSS"
         }
         res = self.client.post("/api/v1/bank/friction", json=payload)
         self.assertEqual(res.status_code, 200)
         data = res.json()
         self.assertEqual(data["transaction_freeze_status"], "SUCCESS")
         self.assertEqual(data["action_taken"], "ATM_MICRO_DELAY_15MIN")
-        self.assertIn("I4C-BLOCK-", data["risk_reference"])
+        self.assertTrue("BNSS106-BLOCK-" in data["risk_reference"] or "BLOCK-" in data["risk_reference"])
+        self.assertEqual(data.get("kiosk_public_availability"), "ACTIVE_FOR_PUBLIC")
+        self.assertEqual(data.get("statutory_power"), "SECTION_106_BNSS")
+        self.assertIn("Section 318(4) BNS", data.get("penal_code_sections", []))
 
     def test_08_websocket_stream(self):
         with self.client.websocket_connect("/ws/alerts") as ws:

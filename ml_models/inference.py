@@ -7,15 +7,26 @@ import numpy as np
 import h3
 import joblib
 
-# H3 v4 Backward Compatibility Shims
-if not hasattr(h3, 'geo_to_h3'):
-    h3.geo_to_h3 = lambda lat, lng, resolution=8: h3.latlng_to_cell(lat, lng, resolution)
-if not hasattr(h3, 'k_ring'):
-    h3.k_ring = lambda cell, k: h3.grid_disk(cell, k)
-if not hasattr(h3, 'h3_to_geo'):
-    h3.h3_to_geo = lambda cell: h3.cell_to_latlng(cell)
-if not hasattr(h3, 'h3_distance'):
-    h3.h3_distance = lambda h1, h2: h3.grid_distance(h1, h2)
+# H3 v4 Compatibility Helpers (Supporting both v4 and legacy v3)
+def _latlng_to_cell(lat: float, lng: float, res: int = 8) -> str:
+    if hasattr(h3, 'latlng_to_cell'):
+        return h3.latlng_to_cell(lat, lng, res)
+    return h3.geo_to_h3(lat, lng, res)
+
+def _grid_disk(cell: str, k: int) -> List[str]:
+    if hasattr(h3, 'grid_disk'):
+        return list(h3.grid_disk(cell, k))
+    return list(h3.k_ring(cell, k))
+
+def _cell_to_latlng(cell: str):
+    if hasattr(h3, 'cell_to_latlng'):
+        return h3.cell_to_latlng(cell)
+    return h3.h3_to_geo(cell)
+
+def _grid_distance(h1: str, h2: str) -> int:
+    if hasattr(h3, 'grid_distance'):
+        return h3.grid_distance(h1, h2)
+    return h3.h3_distance(h1, h2)
 
 
 class PredictiveInferencePipeline:
@@ -60,16 +71,16 @@ class PredictiveInferencePipeline:
         # Kinematic radius: Average urban vehicle speed 35 km/h
         search_radius_km = min(15.0, (35.0 * (predicted_minutes / 60.0)) + 2.0)
         
-        # Identify candidate H3 cells at resolution 8 around last mule location
-        center_h3 = h3.geo_to_h3(mule_last_lat, mule_last_lon, resolution=8)
+        # Identify candidate H3 cells at resolution 8 around last mule location (H3 v4 native)
+        center_h3 = _latlng_to_cell(mule_last_lat, mule_last_lon, 8)
         # Approximate k-ring distance for H3 resolution 8 (edge length ~0.46km)
         k_ring_dist = max(1, int(search_radius_km / 0.8))
-        candidate_cells = list(h3.k_ring(center_h3, min(k_ring_dist, 6)))
+        candidate_cells = _grid_disk(center_h3, min(k_ring_dist, 6))
 
         # Score candidates with Stage 2 Spatial Ranker
         ranking_features = []
         for cell in candidate_cells:
-            cell_lat, cell_lon = h3.h3_to_geo(cell)
+            cell_lat, cell_lon = _cell_to_latlng(cell)
             cell_stats = self.spatial_index.get_h3_spatial_features(cell)
             
             feat_row = [
@@ -78,7 +89,7 @@ class PredictiveInferencePipeline:
                 cell_stats["min_distance_to_highway"],
                 cell_stats["min_distance_to_police"],
                 cell_stats["cctv_coverage_ratio"],
-                h3.h3_distance(center_h3, cell)
+                _grid_distance(center_h3, cell)
             ]
             ranking_features.append(feat_row)
 
@@ -94,7 +105,7 @@ class PredictiveInferencePipeline:
         top_h3_cells = []
         for idx in top_indices:
             cell_id = candidate_cells[idx]
-            c_lat, c_lon = h3.h3_to_geo(cell_id)
+            c_lat, c_lon = _cell_to_latlng(cell_id)
             cell_terms = self.spatial_index.get_terminals_in_cell(cell_id)
             if not cell_terms and hasattr(self.spatial_index, "query_nearest_terminals"):
                 cell_terms = self.spatial_index.query_nearest_terminals(c_lat, c_lon, k=3)

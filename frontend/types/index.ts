@@ -24,10 +24,22 @@ export interface TacticalFactor {
 }
 
 export interface TacticalExplanation {
-  predicted_minutes: number;
-  predicted_confidence: number;
-  top_factors: TacticalFactor[];
-  legal_brief: string;
+  predicted_minutes?: number;
+  predicted_confidence?: number;
+  top_factors?: TacticalFactor[];
+  legal_brief?: string;
+  bnss_section_106_warrant?: string;
+  bnss_section_107_attachment?: string;
+  statutory_power?: string;
+  procedural_sections?: string[];
+  substantive_sections?: string[];
+  statutory_compliance?: {
+    bnss_section_106_warrant?: string;
+    bnss_section_107_attachment?: string;
+    statutory_power?: string;
+    procedural_sections?: string[];
+    substantive_sections?: string[];
+  };
 }
 
 export interface GraphNode {
@@ -71,6 +83,10 @@ export interface Prediction {
   initial_amount?: number;
   victim_bank?: string;
   fraud_category?: string;
+  interdiction_outcome?: string;
+  effective_window_mins?: number;
+  patrol_eta_mins?: number;
+  time_margin_mins?: number;
 }
 
 export interface CADDispatch {
@@ -81,6 +97,12 @@ export interface CADDispatch {
   complaint_id?: string;
   target_h3?: string;
   timestamp?: number;
+  interdiction_outcome?: string;
+  effective_window_mins?: number;
+  patrol_eta_mins?: number;
+  time_margin_mins?: number;
+  operational_brief?: string;
+  statutory_power?: string;
 }
 
 export interface BankFriction {
@@ -90,6 +112,11 @@ export interface BankFriction {
   target_mule_account?: string;
   complaint_id?: string;
   timestamp?: number;
+  friction_mode?: string;
+  statutory_power?: string;
+  statutory_brief?: string;
+  kiosk_public_availability?: string;
+  penal_code_sections?: string[];
 }
 
 export interface BeatUnit {

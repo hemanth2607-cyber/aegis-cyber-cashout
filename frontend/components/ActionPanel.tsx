@@ -240,7 +240,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                 </div>
                 <p className="text-slate-200 italic leading-relaxed text-[10px]">&quot;{sec107Attachment}&quot;</p>
                 <div className="text-[9px] text-tactical-amber/80 border-t border-slate-800 pt-1">
-                  Statutory Grounds: Cognizable offenses under Sections 318(4) & 319 BNSS | Restitution prayed
+                  Statutory Grounds: Cognizable offenses under Sections 318(4) &amp; 319 BNS, 2023 r/w Sec 66D IT Act | Restitution prayed
                 </div>
               </div>
             )}

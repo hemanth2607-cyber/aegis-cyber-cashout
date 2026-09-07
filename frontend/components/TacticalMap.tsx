@@ -36,6 +36,7 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
   // Floating controls state
   const [h3Resolution, setH3Resolution] = useState<8 | 9>(8);
   const [showHexagons, setShowHexagons] = useState(true);
+  const [showMlHeatmap, setShowMlHeatmap] = useState(true);
   const [showAtmRadar, setShowAtmRadar] = useState(true);
   const [showPatrolRoute, setShowPatrolRoute] = useState(true);
   const [mapCenterInfo, setMapCenterInfo] = useState({
@@ -168,6 +169,7 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
     activeTargetHex,
     h3Resolution,
     showHexagons,
+    showMlHeatmap,
     showAtmRadar,
     showPatrolRoute,
     patrolProgress,
@@ -255,6 +257,38 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
                 }
               });
             }
+
+            // Regional ML Risk Heatmap Field across Delhi-NCR
+            if (showMlHeatmap) {
+              const REGIONAL_HEAT_NODES = [
+                { h3: "883da11701fffff", name: "Karol Bagh Corridor", risk: 0.745, color: "#F97316" },
+                { h3: "883da11059fffff", name: "Connaught Place Financial Ring", risk: 0.620, color: "#F59E0B" },
+                { h3: "883da11205fffff", name: "Dwarka Sector 10 ATM Hub", risk: 0.582, color: "#F59E0B" },
+                { h3: "883da11663fffff", name: "Noida Sector 18 Kiosks", risk: 0.490, color: "#00F0FF" },
+                { h3: "883da11327fffff", name: "Gurugram Cyber Hub", risk: 0.465, color: "#00F0FF" },
+              ];
+
+              REGIONAL_HEAT_NODES.forEach((node) => {
+                try {
+                  const nodeBoundary = cellToBoundary(node.h3);
+                  const nodePoly = L.polygon(nodeBoundary, {
+                    color: node.color,
+                    weight: 1.5,
+                    fillColor: node.color,
+                    fillOpacity: 0.28,
+                    dashArray: "3, 3",
+                  }).addTo(map);
+
+                  nodePoly.bindTooltip(
+                    `<div class="font-mono text-xs"><strong>ML FORECAST: ${node.name}</strong><br/>Cell: ${node.h3}<br/>Risk: ${(node.risk * 100).toFixed(1)}%</div>`,
+                    { className: "tactical-tooltip" }
+                  );
+                  newPolygons.push(nodePoly);
+                } catch {
+                  // ignore
+                }
+              });
+            }
           } else {
             // Resolution 9 Granular Sub-Hexagons
             try {
@@ -338,30 +372,66 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
       );
       newAtms.push(atmMarker);
 
-      // 3. Police Patrol Car (PCR-North-14) with Active Intercept Route
-      // Police Origin Station: Beat 14 Dispatch Post (~2.8 km away)
-      const policeOrigin: [number, number] = [
-        atmCoord[0] - 0.022,
-        atmCoord[1] - 0.028,
+      // 3. Police Patrol Car (PCR-North-14) with Realistic Street Corridor Intercept Route
+      // Road network geometry from Beat-14 Post through Outer Ring Rd, Bhagwan Mahavir Marg, Vishram Chowk to Sector 7 ATM
+      const roadWaypoints: { coord: [number, number]; label: string }[] = [
+        { coord: [atmCoord[0] - 0.0240, atmCoord[1] - 0.0260], label: "Beat-14 Dispatch Station" },
+        { coord: [atmCoord[0] - 0.0195, atmCoord[1] - 0.0250], label: "Outer Ring Rd Feeder" },
+        { coord: [atmCoord[0] - 0.0160, atmCoord[1] - 0.0195], label: "Sector 3-4 Junction" },
+        { coord: [atmCoord[0] - 0.0118, atmCoord[1] - 0.0142], label: "Bhagwan Mahavir Roundabout" },
+        { coord: [atmCoord[0] - 0.0075, atmCoord[1] - 0.0090], label: "Bhagwan Mahavir Marg Arterial" },
+        { coord: [atmCoord[0] - 0.0040, atmCoord[1] - 0.0048], label: "Vishram Chowk Junction" },
+        { coord: [atmCoord[0] - 0.0018, atmCoord[1] - 0.0022], label: "Sector 7 Commercial Avenue" },
+        { coord: [atmCoord[0], atmCoord[1]], label: "Target ATM Kiosk Forecourt" },
       ];
 
-      // Intermediate road corridor junction
-      const waypoint: [number, number] = [
-        atmCoord[0] - 0.009,
-        atmCoord[1] - 0.013,
+      // Calculate accurate road distances along corridor segments
+      const segmentLengths: number[] = [];
+      const cumDistances: number[] = [0];
+
+      for (let i = 0; i < roadWaypoints.length - 1; i++) {
+        const p1 = roadWaypoints[i].coord;
+        const p2 = roadWaypoints[i + 1].coord;
+        const dLat = (p2[0] - p1[0]) * 111.0;
+        const dLon = (p2[1] - p1[1]) * 98.0;
+        const dist = Math.sqrt(dLat * dLat + dLon * dLon);
+        segmentLengths.push(dist);
+        cumDistances.push(cumDistances[i] + dist);
+      }
+
+      const totalRouteKm = cumDistances[cumDistances.length - 1];
+
+      // Interpolate patrol car along the realistic street corridor
+      const clampedProgress = Math.max(0, Math.min(0.96, patrolProgress));
+      const targetDistance = clampedProgress * totalRouteKm;
+
+      let activeSegmentIndex = 0;
+      for (let i = 0; i < cumDistances.length - 1; i++) {
+        if (targetDistance >= cumDistances[i] && targetDistance <= cumDistances[i + 1]) {
+          activeSegmentIndex = i;
+          break;
+        }
+      }
+
+      const segStartDist = cumDistances[activeSegmentIndex];
+      const segLength = segmentLengths[activeSegmentIndex] || 0.001;
+      const segRatio = Math.max(0, Math.min(1, (targetDistance - segStartDist) / segLength));
+
+      const pStart = roadWaypoints[activeSegmentIndex].coord;
+      const pEnd = roadWaypoints[activeSegmentIndex + 1].coord;
+
+      const currentCarCoord: [number, number] = [
+        pStart[0] + (pEnd[0] - pStart[0]) * segRatio,
+        pStart[1] + (pEnd[1] - pStart[1]) * segRatio,
       ];
 
-      // Interpolate current car coordinates precisely along the corridor
-      const currentCarCoord: [number, number] =
-        patrolProgress <= 0.5
-          ? [
-              policeOrigin[0] + (waypoint[0] - policeOrigin[0]) * (patrolProgress * 2),
-              policeOrigin[1] + (waypoint[1] - policeOrigin[1]) * (patrolProgress * 2),
-            ]
-          : [
-              waypoint[0] + (atmCoord[0] - waypoint[0]) * ((patrolProgress - 0.5) * 2),
-              waypoint[1] + (atmCoord[1] - waypoint[1]) * ((patrolProgress - 0.5) * 2),
-            ];
+      // Accurate remaining road distance and dynamic emergency ETA
+      const remainingDistKm = Math.max(0.1, totalRouteKm - targetDistance);
+      // Emergency ERSS-112 speed ~38 km/h + 8s per junction turn
+      const remainingJunctions = roadWaypoints.length - 1 - activeSegmentIndex;
+      const junctionDelayMin = remainingJunctions * (8 / 60);
+      const driveTimeMin = (remainingDistKm / 38) * 60;
+      const liveEtaMinutes = (driveTimeMin + junctionDelayMin).toFixed(1);
 
       if (showPatrolRoute) {
         // Origin Station Marker
@@ -378,29 +448,29 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
           iconSize: [24, 24],
           iconAnchor: [12, 12],
         });
-        const originMarker = L.marker(policeOrigin, { icon: originIcon }).addTo(map);
+        const originMarker = L.marker(roadWaypoints[0].coord, { icon: originIcon }).addTo(map);
         newPolice.push(originMarker);
 
-        // A. Traversed Trail (behind the patrol car): subtle dimmed path
-        const traversedCoords: [number, number][] =
-          patrolProgress <= 0.5
-            ? [policeOrigin, currentCarCoord]
-            : [policeOrigin, waypoint, currentCarCoord];
+        // A. Traversed Trail (behind the patrol car): subtle dimmed path along road segments
+        const traversedCoords: [number, number][] = [
+          ...roadWaypoints.slice(0, activeSegmentIndex + 1).map((w) => w.coord),
+          currentCarCoord,
+        ];
 
         const traversedPoly = L.polyline(traversedCoords, {
           color: "#00F0FF",
-          weight: 2,
+          weight: 2.5,
           opacity: 0.35,
           dashArray: "3, 6",
         }).addTo(map);
         newRoutes.push(traversedPoly);
 
-        // B. Active Remaining Distance Route (directly from Patrol Car to Destination ATM):
+        // B. Active Remaining Intercept Route along road network geometry to ATM:
         // Highly visible, glowing, animated electric cyan dashed line
-        const remainingRouteCoords: [number, number][] =
-          patrolProgress <= 0.5
-            ? [currentCarCoord, waypoint, atmCoord]
-            : [currentCarCoord, atmCoord];
+        const remainingRouteCoords: [number, number][] = [
+          currentCarCoord,
+          ...roadWaypoints.slice(activeSegmentIndex + 1).map((w) => w.coord),
+        ];
 
         const activeRoutePoly = L.polyline(remainingRouteCoords, {
           color: "#00F0FF",
@@ -410,17 +480,35 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
         }).addTo(map);
         newRoutes.push(activeRoutePoly);
 
-        // Symmetrically centered Police Car DivIcon (zero offset, perfectly centered on currentCarCoord)
+        // C. Intermediate Road Junction Nodes (Visual feedback of corridor waypoints)
+        for (let j = activeSegmentIndex + 1; j < roadWaypoints.length - 1; j++) {
+          const juncPt = roadWaypoints[j];
+          const juncMarker = L.circleMarker(juncPt.coord, {
+            radius: 3.5,
+            color: "#00F0FF",
+            weight: 1.5,
+            fillColor: "#0B0F17",
+            fillOpacity: 0.9,
+          }).addTo(map);
+          juncMarker.bindTooltip(
+            `<div class="font-mono text-[10px] text-cyan-300"><strong>${juncPt.label}</strong><br/>Corridor Waypoint</div>`,
+            { className: "tactical-tooltip", direction: "top" }
+          );
+          newRoutes.push(juncMarker);
+        }
+
+        // Symmetrically centered Police Car DivIcon with live route telemetry badge
         const policeCarIcon = L.divIcon({
           className: "custom-pcr-marker",
           html: `
             <div class="relative w-10 h-10 flex items-center justify-center">
               <!-- Floating live ETA badge (centered directly above the car) -->
-              <div class="absolute -top-7 left-1/2 -translate-x-1/2 flex items-center space-x-1 px-2 py-0.5 rounded bg-[#0E1422]/95 border border-cyan-400/70 shadow-[0_0_12px_rgba(0,240,255,0.4)] text-[10px] font-mono text-cyan-300 font-bold whitespace-nowrap backdrop-blur-md z-30">
+              <div class="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center space-x-1.5 px-2 py-0.5 rounded bg-[#0E1422]/95 border border-cyan-400/80 shadow-[0_0_14px_rgba(0,240,255,0.45)] text-[10px] font-mono text-cyan-300 font-bold whitespace-nowrap backdrop-blur-md z-30 pointer-events-none">
                 <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-                <span>PCR-North-14</span>
-                <span class="text-white/60">|</span>
-                <span class="text-emerald-400">${(3.8 * (1 - patrolProgress * 0.7)).toFixed(1)} min ETA</span>
+                <span class="text-white">PCR-North-14</span>
+                <span class="text-cyan-500/70">|</span>
+                <span class="text-emerald-400">${liveEtaMinutes} min ETA</span>
+                <span class="text-slate-400 text-[9px]">(${remainingDistKm.toFixed(1)} km)</span>
               </div>
 
               <!-- Police Patrol Icon Badge (Centered exactly at coordinate) -->
@@ -533,6 +621,19 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
 
             <label className="flex items-center justify-between cursor-pointer hover:text-white">
               <span className="flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-sm bg-gradient-to-r from-cyan-400 via-amber-400 to-red-500"></span>
+                <span>ML Risk Heatmap Field</span>
+              </span>
+              <input
+                type="checkbox"
+                checked={showMlHeatmap}
+                onChange={(e) => setShowMlHeatmap(e.target.checked)}
+                className="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer"
+              />
+            </label>
+
+            <label className="flex items-center justify-between cursor-pointer hover:text-white">
+              <span className="flex items-center space-x-1.5">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                 <span>ATM Radar Beacon</span>
               </span>
@@ -597,7 +698,7 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
         </div>
         <div className="flex items-center space-x-2 text-[11px] text-slate-300">
           <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00F0FF]" />
-          <span>ERSS PCR-North-14 (3.8 min ETA)</span>
+          <span>ERSS PCR-North-14 (Street Intercept Corridor)</span>
         </div>
       </div>
     </div>

@@ -1,0 +1,56 @@
+# ==============================================================================
+# Stage 1: Build & Dependency Resolution
+# ==============================================================================
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    g++ \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
+
+
+# ==============================================================================
+# Stage 2: Lightweight Production Runtime
+# ==============================================================================
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=utf-8 \
+    PYTHONPATH=/app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/wheels /wheels
+RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
+
+# Copy Application Modules
+COPY data_generator/ /app/data_generator/
+COPY features/ /app/features/
+COPY ml_models/ /app/ml_models/
+COPY backend/ /app/backend/
+
+# Expose FastAPI Port
+EXPOSE 8000
+
+# Healthcheck
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Launch FastAPI Uvicorn Server
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

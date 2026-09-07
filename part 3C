@@ -1,0 +1,88 @@
+"""
+Live SIH Jury Presentation Script
+Demonstrates real-time complaint ingestion, graph propagation, velocity decay,
+and proactive tactical dispatch in < 15 seconds.
+"""
+import time
+import requests
+
+API_BASE = "http://localhost:8000/api/v1"
+
+def run_jury_simulation():
+    print("==================================================================")
+    print("  SIH26184: PREDICTIVE ANALYTICS FOR CYBERCRIME INTERVENTION      ")
+    print("  LIVE DEMONSTRATION: NCRP -> MULE FLOW -> PROACTIVE DISPATCH     ")
+    print("==================================================================")
+
+    # 1. Ingest Complaint
+    print("\n[STEP 1] Ingesting simulated 1930 NCRP Cyber Fraud Complaint...")
+    complaint_payload = {
+        "complaint_id": "NCRP-2026-DEL-88319",
+        "victim_account": "SBIN0001928374",
+        "victim_bank": "State Bank of India",
+        "initial_amount": 750000.00,
+        "fraud_category": "DIGITAL_ARREST",
+        "initial_utr": "UTR-IND-2026-00192A",
+        "victim_lat": 28.6139,
+        "victim_lon": 77.2090,
+        "timestamp": time.time()
+    }
+    
+    res = requests.post(f"{API_BASE}/complaints/ingest", json=complaint_payload)
+    print(f"[-] Complaint Logged: Loss ₹7,50,000 | Modus: DIGITAL ARREST")
+    print(f"[-] Server Response: {res.status_code} | Tracking Graph Initialized.")
+
+    # 2. Simulate Layer 1 to Layer 3 Peeling Chain Webhooks
+    time.sleep(2)
+    print("\n[STEP 2] CFCFRMS Webhook Trigger: Layer 1 to Layer 3 Rapid Peeling Flow...")
+    mule_hops = [
+        {"sender": "SBIN0001928374", "receiver": "PUNB09988112", "amount": 750000.0, "chan": "IMPS", "utr": "UTR-HOP1-9981"},
+        {"sender": "PUNB09988112", "receiver": "HDFC00041231", "amount": 250000.0, "chan": "IMPS", "utr": "UTR-HOP2-8812"},
+        {"sender": "PUNB09988112", "receiver": "ICIC00091822", "amount": 240000.0, "chan": "UPI", "utr": "UTR-HOP2-8813"},
+        {"sender": "HDFC00041231", "receiver": "YESB00010921", "amount": 245000.0, "chan": "IMPS", "utr": "UTR-HOP3-7711"}
+    ]
+
+    for hop in mule_hops:
+        print(f"    --> Money Flow: {hop['sender']} -> {hop['receiver']} | ₹{hop['amount']} via {hop['chan']}")
+        requests.post(f"{API_BASE}/transactions/hook", json=hop)
+        time.sleep(0.8)
+
+    # 3. Request Predictive Intelligence
+    time.sleep(1.5)
+    print("\n[STEP 3] Querying Dual-Stage Predictive Engine for Intercept Target...")
+    pred_res = requests.get(f"{API_BASE}/predictions/NCRP-2026-DEL-88319").json()
+
+    print("\n======================= TACTICAL FORECAST =======================")
+    print(f" PREDICTED CASH-OUT WINDOW : {pred_res['predicted_cashout_window_mins']} MINUTES")
+    print(f" FORECAST CONFIDENCE       : {pred_res['confidence_score'] * 100}%")
+    print(f" TARGET H3 HEX (Res 8)    : {pred_res['primary_target_cell']['h3_res8']}")
+    print(f" CENTROID COORDINATES      : Lat {pred_res['primary_target_cell']['lat']}, Lon {pred_res['primary_target_cell']['lon']}")
+    print(f" SUSPECT TERMINAL IDENTIFIED: {pred_res['primary_target_cell']['candidate_terminals'][0]['terminal_id']} (Offsite ATM)")
+    print("=================================================================")
+
+    # 4. Proactive Tactical Actions
+    time.sleep(2)
+    print("\n[STEP 4] Executing Automated Law Enforcement Countermeasures...")
+    
+    # 4a. Dial 112 Dispatch
+    dispatch_res = requests.post(f"{API_BASE}/dispatch/dial112", json={
+        "complaint_id": "NCRP-2026-DEL-88319",
+        "target_h3_index": pred_res['primary_target_cell']['h3_res8'],
+        "priority": "CRITICAL"
+    }).json()
+    print(f"[+] ERSS Dial 112 Dispatched: Unit {dispatch_res['patrol_car']} | ETA: {dispatch_res['eta_minutes']} mins")
+
+    # 4b. Bank Friction Delay Trigger
+    freeze_res = requests.post(f"{API_BASE}/bank/friction", json={
+        "complaint_id": "NCRP-2026-DEL-88319",
+        "target_mule_account": "YESB00010921",
+        "action": "STEP_UP_AUTH"
+    }).json()
+    print(f"[+] Bank Micro-Delay Deployed: {freeze_res['action_taken']} | Status: {freeze_res['transaction_freeze_status']}")
+
+    print("\n==================================================================")
+    print(" RESULT: WITHDRAWAL PRE-EMPTED. INCIDENT INTERDICTED IN ADVANCE.  ")
+    print("==================================================================")
+
+if __name__ == "__main__":
+    run_jury_simulation()

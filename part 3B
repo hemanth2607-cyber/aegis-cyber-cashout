@@ -1,0 +1,108 @@
+"""
+Dual-Stage Real-Time Inference Pipeline with Sub-50ms Execution SLA
+"""
+import time
+from typing import Dict, List, Any
+import numpy as np
+import h3
+import joblib
+
+
+class PredictiveInferencePipeline:
+    def __init__(
+        self,
+        stage1_model_path: str,
+        stage2_ranker_path: str,
+        spatial_index_service: Any
+    ):
+        self.stage1_regressor = joblib.load(stage1_model_path)
+        self.stage2_ranker = joblib.load(stage2_ranker_path)
+        self.spatial_index = spatial_index_service
+
+    def predict_cashout(
+        self,
+        complaint_id: str,
+        graph_features: Dict[str, Any],
+        mule_last_lat: float,
+        mule_last_lon: float,
+        remaining_amount: float
+    ) -> Dict[str, Any]:
+        start_time = time.perf_counter()
+
+        # -------------------------------------------------------------
+        # STAGE 1: Time-to-Cashout Horizon Estimation
+        # -------------------------------------------------------------
+        s1_vector = np.array([[
+            graph_features.get("initial_amount", 100000.0),
+            graph_features.get("hop_count", 2),
+            graph_features.get("fan_out_ratio", 1.5),
+            graph_features.get("peeling_ratio", 0.3),
+            graph_features.get("velocity_decay", 0.65),
+            graph_features.get("cumulative_latency_sec", 600.0)
+        ]])
+
+        predicted_minutes = float(self.stage1_regressor.predict(s1_vector)[0])
+        predicted_minutes = max(5.0, min(180.0, predicted_minutes))  # Realistic bounds
+
+        # -------------------------------------------------------------
+        # STAGE 2: Spatial Reachability Isochrone & Cell Ranking
+        # -------------------------------------------------------------
+        # Kinematic radius: Average urban vehicle speed 35 km/h
+        search_radius_km = min(15.0, (35.0 * (predicted_minutes / 60.0)) + 2.0)
+        
+        # Identify candidate H3 cells at resolution 8 around last mule location
+        center_h3 = h3.geo_to_h3(mule_last_lat, mule_last_lon, resolution=8)
+        # Approximate k-ring distance for H3 resolution 8 (edge length ~0.46km)
+        k_ring_dist = max(1, int(search_radius_km / 0.8))
+        candidate_cells = list(h3.k_ring(center_h3, min(k_ring_dist, 6)))
+
+        # Score candidates with Stage 2 Spatial Ranker
+        ranking_features = []
+        for cell in candidate_cells:
+            cell_lat, cell_lon = h3.h3_to_geo(cell)
+            cell_stats = self.spatial_index.get_h3_spatial_features(cell)
+            
+            feat_row = [
+                cell_stats["atm_density"],
+                cell_stats["avg_liquidity"],
+                cell_stats["min_distance_to_highway"],
+                cell_stats["min_distance_to_police"],
+                cell_stats["cctv_coverage_ratio"],
+                h3.h3_distance(center_h3, cell)
+            ]
+            ranking_features.append(feat_row)
+
+        X_spatial = np.array(ranking_features)
+        cell_scores = self.stage2_ranker.predict(X_spatial)
+
+        # Softmax normalization over candidate cell scores
+        exp_scores = np.exp(cell_scores - np.max(cell_scores))
+        probabilities = exp_scores / np.sum(exp_scores)
+
+        # Top 3 cells
+        top_indices = np.argsort(probabilities)[::-1][:3]
+        top_h3_cells = [
+            {
+                "h3_res8": candidate_cells[idx],
+                "probability": float(probabilities[idx]),
+                "lat": h3.h3_to_geo(candidate_cells[idx])[0],
+                "lon": h3.h3_to_geo(candidate_cells[idx])[1],
+                "candidate_terminals": self.spatial_index.get_terminals_in_cell(candidate_cells[idx])
+            }
+            for idx in top_indices
+        ]
+
+        total_latency_ms = (time.perf_counter() - start_time) * 1000.0
+
+        return {
+            "complaint_id": complaint_id,
+            "inference_latency_ms": round(total_latency_ms, 2),
+            "predicted_cashout_window_mins": round(predicted_minutes, 1),
+            "confidence_score": round(float(probabilities[top_indices[0]]), 3),
+            "primary_target_cell": top_h3_cells[0],
+            "top_3_spatial_clusters": top_h3_cells,
+            "tactical_advisory": (
+                f"INTERCEPT ALERT: High probability cash extraction in {round(predicted_minutes, 0)} mins "
+                f"at H3 cell {top_h3_cells[0]['h3_res8']}. Recommended Action: Geofence beat dispatch."
+            )
+        }

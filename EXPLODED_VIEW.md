@@ -30,7 +30,7 @@
  [ LAYER 4: AI & ML CORE ]           +------------------------------+---------------------------------+
                                      |        STAGE 1: LightGBM         |       STAGE 2: TreeSHAP     |
                                      |    Spatial Hotspot Classifier    |     Attribution Explainer   |
-                                     |    & Cashout Velocity Regressor  |   & BNSS 102 Legal Compiler |
+                                     |    & Cashout Velocity Regressor  |  & BNSS 106/107 & BNS Engine|
                                      +------------------------------^---------------------------------+
                                                                     |
  -------------------------------------------------------------------|-----------------------------------
@@ -80,14 +80,17 @@
   * Resolution 8 average edge length: ~461 meters; area: **0.737 km²**.
   * **`scipy.spatial.cKDTree`**: Indexes all physical ATMs into their enclosing and neighboring H3 hexagons, providing instant $O(\log N)$ nearest-neighbor spatial queries.
 
-### Layer 4: Dual-Stage Machine Learning Core (`backend/services/ml_service.py`)
+### Layer 4: Dual-Stage Machine Learning Core (`backend/services/ml_service.py` & `ml_models/explainer.py`)
 * **Stage 1 — Spatial Hotspot Classifier (LightGBM)**:
   * Features ingested: Mule hop count, transaction velocity, hour-of-day, reporting delay, ATM dispenser density, historical syndicate extraction frequency.
   * Output: Probability distribution $P(\text{Cashout} \mid \text{Hex}_i)$ across candidate cells.
-* **Stage 2 — Explainability & Legal Defense Engine (TreeSHAP)**:
+* **Stage 2 — Explainability & Dual Statutory Synthesis (TreeSHAP)**:
   * Calculates exact Shapley feature attribution values for every prediction.
   * Identifies the primary drivers (e.g., `+0.42` due to terminating mule node velocity; `+0.28` due to off-site ATM clustering).
-  * Auto-generates **Section 102 BNSS court-ready briefs** to legally justify emergency freezing orders.
+  * Auto-generates **dual statutory briefs**:
+    1. **Section 106 BNSS Field Lien Warrant**: Enforces targeted card-session debit holds and switch-level latency dilation without taking the ATM kiosk offline for legitimate citizens.
+    2. **Section 107 BNSS Magistrate Attachment Report**: Submits formal prayer for attachment of proceeds of crime arising from offenses under **Section 318(4) & 319 BNS, 2023 read with Section 66D IT Act**.
+    3. **Section 63 BSA, 2023**: Generates cryptographic SHA-256 electronic evidence certificates for trial.
 
 ### Layer 5: Asynchronous Microservice Backend (`backend/`)
 * **`backend/main.py`**:
@@ -108,16 +111,21 @@
   * Stabilized camera controller with GPS HUD and `[RECENTER]` functionality.
 * **`frontend/components/AlertFeed.tsx`**:
   * Real-time priority queue sorted by countdown urgency.
+  * Collapsible sidebar drawer for maximum map visibility.
 * **`frontend/components/ActionPanel.tsx`**:
   * Dedicated docked sidebar displaying countdown timer, terminating mule accounts, TreeSHAP explainability bars, and interdiction buttons.
 
-### Layer 7: Operational Interdiction Loop
-* **Physical Interdiction (Dial 112 ERSS)**:
+### Layer 7: Operational Interdiction Loop (`backend/services/interdiction_service.py`)
+* **Physical CAD Interdiction (Dial 112 ERSS)**:
   * Computes Euclidean distance to active PCR beat vans.
   * Assigns the closest unit (`BEAT-PCR-ROHINI-4`) and outputs an official CAD dispatch reference ID.
-* **Financial Interdiction (NPCI / Bank Switch Hold)**:
-  * Simulates a 15-minute emergency security friction hold on the terminating mule account.
-  * Increments total **Interdicted Value (₹)** in the central command dashboard.
+* **Targeted Financial Interdiction (Section 106 BNSS Switch Hold)**:
+  * Deploys a targeted card-session debit hold (`CARD_SESSION_HOLD`) and switch latency dilation (+15.0m).
+  * **Preserves 100% Terminal Uptime**: Physical ATM/CSP kiosks remain completely operational for the legitimate public (`kiosk_public_availability: "ACTIVE_FOR_PUBLIC"`).
+* **Sequential Interdiction Feasibility Engine**:
+  * Condition 1 (Digital Pre-emption): $T_{\text{digital\_freeze}} < \hat{\Delta t} \implies i_{\text{freeze}} = 1$.
+  * Condition 2 (Physical Intercept): $T_{\text{physical\_dispatch}} < \hat{\Delta t} + (i_{\text{freeze}} \cdot \tau_{\text{friction}})$.
+  * Evaluates the 4-state operational outcome matrix (`OPTIMAL_INTERDICTION`, `ASSET_PRESERVED_ONLY`, `KINETIC_INTERCEPT`, `INTERDICTION_FAILED`).
 
 ---
 
@@ -200,9 +208,10 @@ pervekkala/
        │  - Confidence: 84.5%
        │  - Window: 18.4 Minutes Remaining
        ▼
-[Stage 2: TreeSHAP Attribution]
-       │  - Cashout Velocity: +0.42
-       │  - Offsite ATM Density: +0.28
+[Stage 2: TreeSHAP Attribution & Dual Statutory Briefs]
+       │  - Cashout Velocity: +0.42 | ATM Proximity: +0.28
+       │  - Sec 106 BNSS Card-Session Hold & Sec 107 BNSS Attachment
+       │  - Cites Sec 318(4) & 319 BNS, 2023 r/w Sec 66D IT Act
        ▼
 [WebSocket Broadcast: HIGH_CONFIDENCE_ALERT]
        │
@@ -212,6 +221,7 @@ pervekkala/
  - Crimson H3 Hexagon highlighted         - Countdown timer starts ticking
  - Suspect ATM dispenser radar ping       - TreeSHAP factor cards displayed
  - Money flow arc drawn                   - Operator clicks:
-                                             [DISPATCH DIAL 112] ──► PCR En-route (5m ETA)
-                                             [BANK CASH-LOCK]    ──► ₹4,80,000 Saved
+                                             [ACTIVATE CARD-SESSION HOLD] ──► Sec 106 BNSS Hold (Kiosk Active)
+                                             [DISPATCH DIAL 112]         ──► Condition 1 & 2 Evaluated
+                                                                             OPTIMAL_INTERDICTION (+28.3m Margin)
 ```

@@ -2,7 +2,7 @@
 ### Predictive Cybercrime Analytics & Pre-Withdrawal Interdiction Framework
 **Target Authority:** Indian Cyber Crime Coordination Centre (I4C), Ministry of Home Affairs (MHA), Government of India  
 **System Designation:** Project AegisCashout (National Automated Cashout Interception Engine)  
-**Regulatory & Procedural Compliance:** Section 102, Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023 | CERT-In Cyber Incident Directives | National Cyber Crime Reporting Portal (NCRP) / Helpline 1930 / CFCFRMS Interdiction Protocols  
+**Regulatory & Procedural Compliance:** Section 106 & 107, Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023 | Section 318(4) & 319, Bharatiya Nyaya Sanhita (BNS), 2023 r/w Section 66D IT Act, 2000 | Section 63, Bharatiya Sakshya Adhiniyam (BSA), 2023 | CERT-In Cyber Incident Directives | National Cyber Crime Reporting Portal (NCRP) / Helpline 1930 / CFCFRMS Interdiction Protocols  
 **Classification:** Operational Field Manual — Nodal Cyber Patrol & Dispatch Desk  
 
 ---
@@ -78,7 +78,7 @@ Aegis implements an asymmetric, dual-stage predictive pipeline explicitly engine
  │                                   EXPLAINABILITY ENGINE (TreeSHAP)                             │
  │ - Computes Game-Theoretic Shapley Feature Attribution Vectors (Historical Corridor Velocity,    │
  │   Arterial Highway Distance, Terminal Density, KYC Branch Geodelta)                           │
- │ - Auto-Compiles Court-Admissible Legal Rationale under Section 102 BNSS                       │
+ │ - Auto-Compiles Court-Admissible Dual Legal Briefs under Section 106 & 107 BNSS (BNS 318(4))   │
  └────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -96,10 +96,13 @@ Aegis implements an asymmetric, dual-stage predictive pipeline explicitly engine
   $$P(\text{Cashout} \in \text{Hex}_i \mid \text{Graph Topology}, \text{Infrastructure Density}, \text{Historical Hotspots})$$
 * **Infrastructure Indexing:** All physical off-site ATMs, micro-ATMs, and AePS CSPs are spatialized into a `scipy.spatial.cKDTree` coordinate index, mapping exact candidate terminals within the Top-3 highest-probability hexagons.
 
-### 2.3 Explainability Engine (TreeSHAP & Section 102 BNSS Synthesis)
+### 2.3 Explainability Engine (TreeSHAP & Dual Statutory Synthesis)
 * **Feature Attribution:** To eliminate "black-box" objections during trial and ensure full judicial transparency, the engine runs tree-based Shapley value decompositions (TreeSHAP) on every live prediction:
   $$\phi_i = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|!(|F| - |S| - 1)!}{|F|!} \left[ f(S \cup \{i\}) - f(S) \right]$$
-* **Legal Brief Compilation:** Translates mathematical attribution weights directly into procedural legal summaries citing **Section 102, Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023** (Power of police officer to seize suspicious property / freeze suspected accounts without prior magistrate warrant during active commission of cognizable cyber offenses).
+* **Dual Statutory Brief Compilation:** Translates mathematical attribution weights directly into procedural and substantive legal briefs adhering to India's new criminal codes (effective 2024):
+  1. **Procedural Field Seizure & Targeted Card-Session Lien (Section 106 BNSS):** Authorizes police officers to execute immediate field liens and transaction latency holds against terminating accounts and suspect card sessions at the payment switch without taking down physical kiosk availability for the legitimate public.
+  2. **Magistrate Judicial Attachment of Proceeds of Crime (Section 107 BNSS):** Formulates formal reports to the Magistrate praying for attachment of siphoned proceeds of crime arising from substantive offenses under **Section 318(4) (Cheating) & Section 319 (Cheating by personation) of the Bharatiya Nyaya Sanhita (BNS), 2023, read with Section 66D of the Information Technology Act, 2000**.
+  3. **Digital Evidence Integrity (Section 63 BSA, 2023):** Every inference vector and dispatch event is hashed with SHA-256 for non-repudiation and electronic record admissibility.
 
 ---
 
@@ -142,7 +145,7 @@ A primary hurdle in Indian cybercrime enforcement is **inter-state jurisdictiona
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ [TOP NAVIGATION BAR]  AEGISCASHOUT | BNSS 102 | Active: 24 | Imminent: 7 | Interdicted: ₹47.5L | [SIM] │
+│ [TOP NAVIGATION BAR]  AEGISCASHOUT | BNSS 106/107 | Active: 24 | Imminent: 7 | Interdicted: ₹47.5L | [SIM] │
 ├───────────────────────────────┬────────────────────────────────────────┬───────────────────────────────┤
 │ [ALERT FEED: LEFT SIDEBAR]    │ [TACTICAL GIS MAP: CENTER VIEWPORT]    │ [ACTION PANEL: RIGHT SIDEBAR] │
 │                               │                                        │                               │
@@ -153,14 +156,14 @@ A primary hurdle in Indian cybercrime enforcement is **inter-state jurisdictiona
 │                               │          \                             │ Terminating Mule: MULE-AXIS   │
 │ > NCR-2026-09144  [WARNING]   │        [Crimson H3 Hexagon]            │ Suspect ATM: AXIS-ROH-091     │
 │   Window: 28m 45s             │        /   * (Target ATM Ping)         │ Reserves: ₹3,20,000           │
-│   Target: Dwarka Sector 11    │       /                                │                               │
+│   Target: Dwarka Sector 11    │       /                                │ Public Kiosk: ACTIVE (100%)   │
 │   Amount: ₹2,10,000           │    [Orange Money Flow Arc]             │ TreeSHAP Explainability:      │
 │                               │    /                                   │ +0.42 Cashout Velocity Surge  │
 │ > NCR-2026-09201  [STABLE]    │  (Victim: Connaught Place)             │ +0.28 Offsite Dispenser Clust │
-│   Window: 41m 10s             │                                        │ Sec 102 BNSS Legal Brief      │
+│   Window: 41m 10s             │                                        │ Sec 106/107 BNSS Dual Brief   │
 │   Target: Noida Sector 62     │   [Tactical Legend: Hex, ATM, Beat]    │                               │
 │   Amount: ₹1,50,000           │                                        │ [DISPATCH DIAL 112 BEAT]      │
-│                               │                                        │ [ACTIVATE BANK CASH-LOCK 15M] │
+│                               │                                        │ [ACTIVATE CARD-SESSION HOLD]  │
 └───────────────────────────────┴────────────────────────────────────────┴───────────────────────────────┘
 ```
 
@@ -185,7 +188,7 @@ A primary hurdle in Indian cybercrime enforcement is **inter-state jurisdictiona
 ## 5. Exhaustive Operator Walkthrough & Action Controls
 
 ### 5.1 Top Navigation Bar Controls
-1. **Section 102 BNSS Compliance Pill:** Confirms all system telemetry and algorithmic attributions conform to Bharatiya Nagarik Suraksha Sanhita digital asset seizure standards.
+1. **Section 106 & 107 BNSS Compliance Pill:** Confirms all system telemetry, targeted card-session holds, and Magistrate attachment applications conform to Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023.
 2. **Active Complaints Monitor:** Displays live stream volume of ingested 1930 / NCRP complaints in the sector.
 3. **Imminent Cashouts Counter:** Highlights threats with remaining withdrawal windows of under 30 minutes.
 4. **Interdicted Value Counter (₹):** Live cumulative financial metric tracking stolen capital successfully frozen or intercepted across the shift.
@@ -205,29 +208,35 @@ A primary hurdle in Indian cybercrime enforcement is **inter-state jurisdictiona
 ### 5.3 Tactical Action & Explainability Panel (Right Sidebar)
 Docked securely on the right edge with zero map-tile occlusion:
 
-#### A. Dynamic Real-Time Countdown Clock
-* Displays the estimated operational window (`MM:SS`) before physical cash extraction. Updates dynamically every second.
+#### A. Dynamic Real-Time Countdown Clock & Sequential Evaluation
+* Displays the estimated operational window (`MM:SS`) before physical cash extraction.
+* Evaluates the **Sequential Interdiction Feasibility Model**:
+  $$\text{Condition 1 (Digital Pre-emption)}: \quad T_{\text{digital\_freeze}} < \hat{\Delta t} \implies i_{\text{freeze}} = 1$$
+  $$\text{Condition 2 (Physical Intercept)}: \quad T_{\text{physical\_dispatch}} < \hat{\Delta t} + (i_{\text{freeze}} \times \tau_{\text{friction}})$$
+  $$\text{Effective Window}: \quad \text{Window}_{\text{effective}} = \hat{\Delta t} + (i_{\text{freeze}} \times \tau_{\text{friction}})$$
+  $$\text{Operational Buffer Margin}: \quad \text{Margin} = \text{Window}_{\text{effective}} - T_{\text{physical\_dispatch}}$$
 
 #### B. Suspect Network & Peeling Trajectory
 * **Terminating Mule Account:** Identified Layer 3 account (e.g., `MULE-AXIS-991204`).
 * **Peeled Amount:** Exact quantum of illicit funds slated for cashout (e.g., `₹4,80,000`).
-* **Candidate Terminal Detail:** Specific off-site kiosk (e.g., `AXIS-ROH-091`), street address, bank brand, and available vault currency.
+* **Candidate Terminal Detail:** Specific off-site kiosk (e.g., `AXIS-ROH-091`), street address, bank brand, available vault currency, and confirmation of `kiosk_public_availability: "ACTIVE_FOR_PUBLIC"`.
 
-#### C. TreeSHAP AI Tactical Drivers
+#### C. TreeSHAP AI Tactical Drivers & Dual Statutory Dossiers
 * Breaks down algorithmic confidence into plain, accountable evidentiary factors:
   * *Cashout Velocity Surge:* E.g., `+0.42` Shapley attribution due to rapid 3-hop peeling within 8 minutes.
   * *Terminal Liquidity & Offsite Profile:* E.g., `+0.28` attribution due to isolated ATM dispenser located within 300m of an arterial highway exit.
   * *Mule Cluster Density:* E.g., `+0.18` attribution based on previous syndicate withdrawal history in this postal zone.
-* **Section 102 BNSS Court-Ready Legal Brief:** Auto-generated legal narrative admissible in court to justify freezing orders:
-  > *"Urgent interdiction initiated under Section 102 BNSS based on multi-hop graph velocity anomalies indicating imminent physical dissipation of proceeds of crime at Terminal AXIS-ROH-091."*
+* **Dual Statutory Brief Generation:**
+  1. **Section 106 BNSS Field Lien Warrant:** Orders targeted card-session hold and switch-level latency dilation without taking the ATM kiosk offline for legitimate citizens.
+  2. **Section 107 BNSS Magistrate Attachment Report:** Generates formal prayer to the Magistrate for attachment of proceeds of crime arising from substantive offenses under **Section 318(4) & 319 BNS, 2023, read with Section 66D IT Act, 2000**.
 
 #### D. Operational Interdiction Buttons
 1. **`DISPATCH DIAL 112 BEAT PATROL` (Cyan Tactical Button):**
    * **Action:** Sends a formatted CAD packet directly to the nearest Delhi Police PCR beat van (`BEAT-PCR-ROHINI-4`).
-   * **Output:** Generates an official dispatch ID (`CAD-DL-89104`), calculates estimated time of arrival (ETA: ~5.2 mins), updates patrol status to `DISPATCHED`, and alerts field personnel to secure the ATM perimeter.
-2. **`ACTIVATE BANK CASH-LOCK (15M HOLD)` (Crimson Security Button):**
-   * **Action:** Issues a simulated API interdiction command to the NPCI / bank switch network.
-   * **Output:** Imposes an emergency 15-minute security friction hold on the terminating mule card and the target ATM dispenser switch. Halts cash dispensing, protects the funds, and adds the intercepted amount to the **Interdicted Value** counter.
+   * **Output:** Generates an official dispatch ID (`CAD-DL-89104`), calculates estimated time of arrival (ETA: ~5.2 mins), updates patrol status to `DISPATCHED`, and evaluates the 4-state outcome matrix (`OPTIMAL_INTERDICTION`).
+2. **`ACTIVATE BANK CASH-LOCK (CARD SESSION HOLD)` (Crimson Security Button):**
+   * **Action:** Issues a Section 106 BNSS targeted interdiction command to the banking switch network (`friction_mode: "CARD_SESSION_HOLD"`).
+   * **Operational Effect:** Enforces targeted card-session latency injection and dynamic step-up auth at the switch. The physical ATM/CSP terminal remains **100% active and operational for public use**, while the suspect card session is locked and funds preserved.
 3. **`X` Close Button:**
    * Dismisses the sidebar to maximize geographic map visibility.
 
@@ -246,6 +255,7 @@ To ensure operational viability across all state police headquarters without rec
 | **Stage 1 Temporal ML** | LightGBM Regressor + Survival Analysis | **NO** | Open-source MIT. Model weights execute in local Python runtime. |
 | **Stage 2 Spatial ML** | Multi-feature Spatial Ranker | **NO** | Open-source Apache 2.0. Sub-50ms local inference execution. |
 | **Explainability Engine** | TreeSHAP (`shap` library) | **NO** | Open-source MIT. Pure mathematical game-theoretic Shapley logic. |
+| **Sequential Interdiction Engine**| 2-Condition Sequential Mathematical Matrix | **NO** | Custom algorithmic optimization. Zero latency overhead. |
 | **Core Microservices** | Python 3.11 / FastAPI / Starlette WebSockets | **NO** | Open-source MIT / BSD. Air-gapped, on-premises deployable. |
 | **Tactical Interface** | Next.js 14 / TypeScript / Tailwind CSS | **NO** | Open-source MIT. Node.js native compilation. |
 
@@ -272,17 +282,19 @@ Execute this standard operational demonstration sequence during tactical present
             orange digital money peeling arcs trace the fund path from victim to dispenser.
           │
           ▼
- STEP 4: VERIFY EXPLAINABILITY & BNSS LEGAL JUSTIFICATION
+ STEP 4: VERIFY EXPLAINABILITY & BNS/BNSS STATUTORY BRIEFS
    Inspect the Right Action Panel:
    - Dynamic countdown clock counting down remaining window (e.g., 18 mins).
    - Review TreeSHAP attribution bars (+0.42 Velocity, +0.28 ATM Proximity).
-   - Read the Section 102 BNSS legal justification brief for courtroom admissibility.
+   - Read Section 106 BNSS Card-Session Lien & Section 107 BNSS Magistrate Attachment briefs
+     citing Section 318(4) & 319 BNS, 2023 r/w Section 66D IT Act.
           │
           ▼
  STEP 5: EXECUTE TACTICAL DUAL-ACTION INTERCEPTION
-   1. Click [DISPATCH DIAL 112 BEAT PATROL] -> Assigns BEAT-PCR-ROHINI-4; unit status updates to DISPATCHED.
-   2. Click [ACTIVATE BANK CASH-LOCK (15M HOLD)] -> Locks terminal switch; confirms fraud prevention;
-      Interdicted Value metric increments by ₹4,80,000 live on the top status bar.
+   1. Click [ACTIVATE BANK CASH-LOCK (CARD SESSION HOLD)] -> Invokes Section 106 BNSS card-session hold;
+      ATM kiosk remains active for other citizens; Interdicted Value increments live by ₹4,80,000.
+   2. Click [DISPATCH DIAL 112 BEAT PATROL] -> Assigns BEAT-PCR-ROHINI-4; evaluates sequential interdiction
+      feasibility: Condition 1 (1.4s < 18m) and Condition 2 (5.2m < 33m) -> OPTIMAL_INTERDICTION ACHIEVED.
 ```
 
 ---

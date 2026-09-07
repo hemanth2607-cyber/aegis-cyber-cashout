@@ -320,7 +320,7 @@ Aegis is architected as an asynchronous, event-driven pipeline split into four d
   <rect x="604" y="342" width="240" height="52" rx="6" fill="#0B132B" stroke="#1E293B" />
   <text x="618" y="360" fill="#F8FAFC" font-size="11" font-weight="700">TacticalSHAPExplainer</text>
   <text x="618" y="374" fill="#A855F7" font-size="9.5" font-weight="700">TreeSHAP Local Attribution</text>
-  <text x="618" y="386" fill="#94A3B8" font-size="9">Section 102 BNSS / 65B BSA Legal Brief</text>
+  <text x="618" y="386" fill="#94A3B8" font-size="9">Section 106/107 BNSS &amp; BNS Legal Brief</text>
 
   <!-- Arrow T3 -> T4 -->
   <line x1="450" y1="406" x2="450" y2="431" stroke="#10B981" stroke-width="2" marker-end="url(#arrowEmerald)" />
@@ -466,9 +466,9 @@ When cyber criminals siphon funds, they employ automated laundering structures. 
 | Architectural Layer | Core Technologies | Justification & Production Benchmark |
 |---|---|---|
 | **Graph & Feature Engineering** | `Polars`, `NetworkX`, `NumPy`, `SciPy` | $10\times$ faster than Pandas. Real-time traversal of 10,000+ edge multigraphs in $<1.2\text{s}$. |
-| **Spatial & Geohash Indexing** | `Uber H3 (v4)`, `SciPy cKDTree`, `Shapely` | Discrete hexagonal spatial binning (Res 8: $\sim 0.737\text{ km}^2$, Res 9: $\sim 0.1\text{ km}^2$). $O(1)$ spatial queries. |
-| **Dual-Stage Machine Learning** | `LightGBM Regressor`, `LGBMRanker (LambdaMART)` | Stage 1 MAE: $10.78\text{ mins} < 15.0\text{ min SLA}$. Stage 2 NDCG@3: $0.6531$, Top-3 Spatial Recall: $82.04\%$. |
-| **Explainable AI (XAI)** | `TreeSHAP`, `FastTreeSHAP` | Exact Shapley local attributions translated into Section 102 BNSS court-ready briefs in $<2\text{ms}$. |
+| **Spatial & Geohash Indexing** | `Uber H3 (v4)`, `SciPy cKDTree`, `Shapely` | Discrete hexagonal spatial binning (Res 8: $\sim 0.737\text{ km}^2$, Res 9: $\sim 0.1\text{ km}^2$). $O(1)$ spatial| **Dual-Stage Machine Learning** | `LightGBM Regressor`, `LGBMRanker (LambdaMART)` | Stage 1 MAE: $10.78\text{ mins} < 15.0\text{ min SLA}$. Stage 2 NDCG@3: $0.6531$, Top-3 Spatial Recall: $82.04\%$. |
+| **Explainable AI (XAI)** | `TreeSHAP`, `FastTreeSHAP` | Exact Shapley local attributions translated into Section 106/107 BNSS & BNS court-ready briefs in $<2\text{ms}$. |
+| **Sequential Interdiction Engine** | `InterdictionService (2-Condition Math)` | Sequential dependency model combining digital pre-emption with CAD dispatch to guarantee asset preservation. |
 | **Asynchronous Backend** | `Python FastAPI`, `Uvicorn`, `Pydantic v2` | Fully asynchronous, non-blocking webhook ingestion with native WebSocket push streaming. |
 | **Tactical Command Center** | `Next.js 14`, `Tailwind CSS`, `Leaflet`, `h3-js` | Dark tactical UI, client-rendered hexagonal heatmaps, radar beacons, and CAD dispatch triggers. |
 | **Deployment & Containerization** | `Docker`, `Docker Compose`, `Redis 7` | Multi-stage slim builds (Python 3.11-slim & Node 20-alpine) with containerized health checks. |
@@ -498,6 +498,26 @@ Where:
 * $\Psi_{\text{corridor}}(a)$ measures proximity to high-speed arterial escape highways (e.g., Outer Ring Road, NH-48).
 * $\Psi_{\text{police}}(a) = \exp(-\sigma \cdot \text{distance to Nearest Cyber PS})$ imposes an apprehension penalty within a $2.5\text{km}$ beat radius.
 * $\Psi_{\text{surv}}(a)$ penalizes active CCTV camera density at the terminal.
+
+### 3. Sequential Interdiction Feasibility Model & 4-State Operational Matrix
+Aegis replaces simplistic parallel race assumptions with a rigorous **two-condition sequential dependency model** pairing digital switch friction with physical ERSS CAD patrol dispatch:
+
+* **Condition 1 (Digital Pre-emption via Sec 106 BNSS):**
+  $$T_{\text{digital\_freeze}} < \hat{\Delta t} \implies i_{\text{freeze}} = 1 \quad (\text{else } 0)$$
+  *Where $\tau_{\text{friction}} = +15.0\text{ mins}$ injects card-session level latency and step-up auth at the switch while preserving 100% kiosk uptime for legitimate citizens.*
+
+* **Condition 2 (Physical CAD Patrol Intercept):**
+  $$T_{\text{physical\_dispatch}} < \hat{\Delta t} + (i_{\text{freeze}} \cdot \tau_{\text{friction}})$$
+  $$\text{Effective Intercept Horizon}: \quad W_{\text{effective}} = \hat{\Delta t} + (i_{\text{freeze}} \cdot \tau_{\text{friction}})$$
+  $$\text{Operational Buffer Margin}: \quad \mathcal{M} = W_{\text{effective}} - T_{\text{physical\_dispatch}}$$
+
+* **4-State Operational Outcome Matrix:**
+  1. $\mathbf{OPTIMAL\_INTERDICTION} \iff (i_{\text{freeze}} = 1 \land \mathcal{M} \ge 0)$: Card session frozen, funds preserved, and suspect runner intercepted.
+  2. $\mathbf{ASSET\_PRESERVED\_ONLY} \iff (i_{\text{freeze}} = 1 \land \mathcal{M} < 0)$: Card session frozen, funds preserved; suspect fled prior to patrol arrival.
+  3. $\mathbf{KINETIC\_INTERCEPT} \iff (i_{\text{freeze}} = 0 \land \mathcal{M} \ge 0)$: Physical intercept achieved before cash dispense without digital hold.
+  4. $\mathbf{INTERDICTION\_FAILED} \iff (i_{\text{freeze}} = 0 \land \mathcal{M} < 0)$: Cashout consummated prior to police arrival.
+
+---rminal.
 
 ---
 
@@ -684,8 +704,16 @@ When an imminent cash-out is detected ($\hat{T} \le 30\text{ minutes}$ and confi
   "bank_friction_action": {
     "target_mule_account": "YESB00010921",
     "action_deployed": "ATM_MICRO_DELAY_15MIN",
+    "friction_mode": "CARD_SESSION_HOLD",
     "transaction_freeze_status": "SUCCESS",
-    "risk_reference": "I4C-BLOCK-9921"
+    "risk_reference": "BNSS106-BLOCK-9921",
+    "statutory_power": "SECTION_106_BNSS",
+    "kiosk_public_availability": "ACTIVE_FOR_PUBLIC",
+    "penal_code_sections": [
+      "Section 318(4) BNS",
+      "Section 319 BNS",
+      "Section 66D IT Act"
+    ]
   },
   "explainable_ai_attribution": {
     "top_positive_risk_drivers": [
@@ -705,7 +733,7 @@ When an imminent cash-out is detected ($\hat{T} \le 30\text{ minutes}$ and confi
         "tactical_meaning": "Target ATM intersects Outer Ring Road escape corridor within 320m"
       }
     ],
-    "statutory_legal_brief": "SECTION 102 BNSS / SECTION 65B BSA WARRANT JUSTIFICATION: Dual-stage TreeSHAP machine learning inference indicates high-confidence physical cashout trajectory. Terminating Layer 3 mule account YESB00010921 has received siphoned capital within 8.7 minutes of extraction threshold at H3 cell 883da18da3fffff. Immediate geofenced beat patrol interception and terminal micro-delay are mandated."
+    "statutory_legal_brief": "SECTION 106 & 107 BNSS / SECTION 63 BSA DUAL COMPLIANCE BRIEF: Dual-stage TreeSHAP machine learning inference indicates high-confidence physical cashout trajectory. Terminating Layer 3 mule account YESB00010921 has received siphoned capital within 8.7 minutes of extraction threshold at H3 cell 883da18da3fffff. Invoking Section 106 BNSS (Police seizure/lien power), immediate targeted card-session debit lien and latency dilation are deployed (preserving terminal uptime for the public). Judicial attachment report docketed under Section 107 BNSS for offenses under Section 318(4) & Section 319 BNS, 2023 read with Section 66D IT Act."
   }
 }
 ```
@@ -714,9 +742,19 @@ When an imminent cash-out is detected ($\hat{T} \le 30\text{ minutes}$ and confi
 
 ## 9. Statutory Compliance & Legal Tenability
 
-Aegis-Cyber outputs are built specifically to adhere to modern Indian criminal jurisprudence:
-- **Section 102 Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023**: Authorizes police officers to seize and freeze bank accounts and movable assets identified through real-time ML tracing.
-- **Section 65B Bharatiya Sakshya Adhiniyam (BSA), 2023**: Every inference event, graph edge, and CAD dispatch is cryptographically signed with SHA-256 hashes for non-repudiation in court trials.
+Aegis-Cyber outputs are constructed specifically to adhere to India's new criminal codes enacted in 2024:
+
+### 1. Procedural Code: Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023
+- **Section 106 BNSS (Police Seizure & Targeted Field Lien)**: Authorizes police officers to immediately seize and place a lien on property/accounts suspected to be stolen or linked to cognizable cyber offenses. Aegis utilizes this power to enforce **targeted card-session debit holds and transaction latency dilation at the switch**, ensuring the physical ATM/CSP dispenser remains **100% operational for legitimate citizens**.
+- **Section 107 BNSS (Magistrate Attachment of Proceeds of Crime)**: Directs the investigating officer to submit a formal report to the District Magistrate or Sessions Court praying for formal attachment, confiscation, and eventual victim restitution of the siphoned funds.
+
+### 2. Substantive Penal Code: Bharatiya Nyaya Sanhita (BNS), 2023 & IT Act
+- **Section 318(4) BNS, 2023**: Substantive penal offense of Cheating and dishonestly inducing delivery of property (replacing Section 420 IPC).
+- **Section 319 BNS, 2023**: Substantive penal offense of Cheating by personation (replacing Section 416/419 IPC).
+- **Section 66D Information Technology Act, 2000**: Punishment for cheating by personation by using computer resources.
+
+### 3. Electronic Evidence & Cryptographic Non-Repudiation
+- **Section 63 Bharatiya Sakshya Adhiniyam (BSA), 2023**: Replaces Section 65B of the Indian Evidence Act. Every AI inference vector, graph edge, card-session lien, and CAD dispatch is cryptographically signed with SHA-256 hashes and timestamped for court admissibility without manual evidentiary challenges.
 
 ---
 

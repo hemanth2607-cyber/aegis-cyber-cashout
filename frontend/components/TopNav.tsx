@@ -1,14 +1,13 @@
 "use client";
 
-import React from "react";
-import { Shield, Radio, Activity, AlertTriangle, IndianRupee, Car, Play, Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Activity, CheckCircle2, Clock, Play, Loader2 } from "lucide-react";
 
 interface TopNavProps {
   connected: boolean;
-  activeComplaints: number;
-  imminentCashouts: number;
-  interdictedValue: number;
-  activeBeatUnits: number;
+  activeComplaints?: number;
+  preemptedValue?: number;
+  mttrMinutes?: number;
   isSimulating: boolean;
   simulationStatus: string | null;
   onSimulate: () => void;
@@ -16,94 +15,119 @@ interface TopNavProps {
 
 export const TopNav: React.FC<TopNavProps> = ({
   connected,
-  activeComplaints,
-  imminentCashouts,
-  interdictedValue,
-  activeBeatUnits,
+  activeComplaints = 1,
+  preemptedValue = 450000,
+  mttrMinutes = 3.2,
   isSimulating,
   simulationStatus,
   onSimulate,
 }) => {
-  const formattedValue = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(interdictedValue);
+  const [timeStr, setTimeStr] = useState({ ist: "", utc: "" });
+
+  useEffect(() => {
+    const updateClocks = () => {
+      const now = new Date();
+      // IST: UTC + 5:30
+      const istTime = now.toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      const utcTime = now.toLocaleTimeString("en-US", {
+        timeZone: "UTC",
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      setTimeStr({ ist: istTime, utc: utcTime });
+    };
+
+    updateClocks();
+    const interval = setInterval(updateClocks, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Format Pre-empted ₹ in Lakhs (e.g. ₹4.50L)
+  const formattedPreempted = `₹${(preemptedValue / 100000).toFixed(2)}L`;
 
   return (
-    <header className="h-16 bg-tactical-panel border-b border-tactical-border px-4 flex items-center justify-between select-none relative z-30 shadow-lg">
-      {/* Left: Branding & Jurisdiction */}
+    <header className="h-12 bg-[#0B0F17]/95 border-b border-white/[0.08] px-4 flex items-center justify-between select-none relative z-30 backdrop-blur-md">
+      {/* 1. Left: Badge & Live Status Indicator */}
       <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 rounded-lg bg-tactical-card border border-tactical-cyan/40 flex items-center justify-center shadow-tactical-cyan">
-          <Shield className="w-5 h-5 text-tactical-cyan animate-pulse" />
+        <div className="flex items-center space-x-2">
+          <span className="text-[11px] font-mono font-bold tracking-widest text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-2.5 py-0.5 rounded shadow-[0_0_10px_rgba(0,240,255,0.15)]">
+            PERVEKKALA // SIH-26184
+          </span>
         </div>
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className="font-extrabold tracking-wider text-base text-white">
-              AEGIS<span className="text-tactical-cyan">CASHOUT</span>
-            </span>
-            <span className="text-[10px] bg-tactical-cyan/10 text-tactical-cyan border border-tactical-cyan/30 px-1.5 py-0.5 rounded font-mono font-semibold uppercase">
-              BNSS 106/107 Compliant
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400 font-mono flex items-center space-x-1">
-            <Radio className="w-3 h-3 text-tactical-green inline animate-pulse" />
-            <span>I4C / NCRP LIVE MONITORING - DELHI-NCR SECTOR</span>
-          </p>
+
+        <div className={`hidden sm:flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono ${
+          connected
+            ? "bg-emerald-950/40 border border-emerald-500/20 text-emerald-400"
+            : "bg-amber-950/40 border border-amber-500/20 text-amber-400"
+        }`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+          <span className="tracking-wide">
+            {connected ? "SYSTEM ARMED - STREAMING NCRP FEED" : "SYSTEM ARMED - LOCAL MONITOR ACTIVE"}
+          </span>
         </div>
       </div>
 
-      {/* Middle: Live Counter KPIs */}
-      <div className="hidden xl:flex items-center space-x-3">
-        {/* KPI 1 */}
-        <div className="bg-tactical-card/80 border border-slate-800 px-3 py-1.5 rounded flex items-center space-x-2.5">
-          <Activity className="w-4 h-4 text-cyan-400" />
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-mono">Active Complaints</div>
-            <div className="text-sm font-mono font-bold text-white leading-tight">{activeComplaints} Tracked</div>
-          </div>
+      {/* 2. Center: Quick Metrics Pill Strip */}
+      <div className="hidden lg:flex items-center space-x-2 bg-white/[0.03] border border-white/[0.06] px-2 py-1 rounded-md">
+        {/* Active Complaints Pill */}
+        <div className="flex items-center space-x-1.5 px-2 py-0.5 text-xs font-mono">
+          <Activity className="w-3 h-3 text-cyan-400" />
+          <span className="text-slate-400 text-[11px]">Active Complaints:</span>
+          <span className="font-bold text-white">{activeComplaints}</span>
         </div>
 
-        {/* KPI 2 */}
-        <div className="bg-tactical-card/80 border border-tactical-crimson/30 px-3 py-1.5 rounded flex items-center space-x-2.5 shadow-tactical-crimson/20">
-          <AlertTriangle className="w-4 h-4 text-tactical-crimson animate-bounce" />
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-tactical-crimson font-mono">Imminent Cashouts (&lt;30m)</div>
-            <div className="text-sm font-mono font-bold text-white leading-tight">{imminentCashouts} Hotspots</div>
-          </div>
+        <span className="text-slate-700 text-xs">|</span>
+
+        {/* Pre-empted Pill */}
+        <div className="flex items-center space-x-1.5 px-2 py-0.5 text-xs font-mono">
+          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+          <span className="text-slate-400 text-[11px]">Pre-empted:</span>
+          <span className="font-bold text-emerald-400">{formattedPreempted}</span>
         </div>
 
-        {/* KPI 3 */}
-        <div className="bg-tactical-card/80 border border-tactical-green/30 px-3 py-1.5 rounded flex items-center space-x-2.5">
-          <IndianRupee className="w-4 h-4 text-tactical-green" />
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-tactical-green font-mono">Interdicted Value</div>
-            <div className="text-sm font-mono font-bold text-tactical-green leading-tight">{formattedValue}</div>
-          </div>
-        </div>
+        <span className="text-slate-700 text-xs">|</span>
 
-        {/* KPI 4 */}
-        <div className="bg-tactical-card/80 border border-slate-800 px-3 py-1.5 rounded flex items-center space-x-2.5">
-          <Car className="w-4 h-4 text-tactical-cyan" />
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-mono">Dial 112 ERSS Beat</div>
-            <div className="text-sm font-mono font-bold text-white leading-tight">{activeBeatUnits} Mobile Units</div>
-          </div>
+        {/* Avg MTTR Pill */}
+        <div className="flex items-center space-x-1.5 px-2 py-0.5 text-xs font-mono">
+          <Clock className="w-3 h-3 text-amber-400" />
+          <span className="text-slate-400 text-[11px]">Avg Intervention MTTR:</span>
+          <span className="font-bold text-amber-400">{mttrMinutes}m</span>
         </div>
       </div>
 
-      {/* Right: Simulation Button & WebSocket Badge */}
+      {/* 3. Right: Live UTC/IST Clock + Demo Trigger Button */}
       <div className="flex items-center space-x-3">
+        {/* Live Clocks */}
+        <div className="hidden md:flex items-center space-x-2 text-[11px] font-mono text-slate-400 bg-white/[0.02] border border-white/[0.06] px-2.5 py-1 rounded">
+          <span className="text-slate-200 font-semibold">{timeStr.ist || "00:00:00"} IST</span>
+          <span className="text-slate-600">/</span>
+          <span className="text-slate-400">{timeStr.utc || "00:00:00"} UTC</span>
+        </div>
+
+        {/* Status indicator during simulation */}
         {simulationStatus && (
-          <span className="text-xs font-mono text-tactical-amber animate-pulse hidden md:inline">
+          <span className="text-[11px] font-mono text-amber-400 animate-pulse hidden xl:inline">
             [{simulationStatus}]
           </span>
         )}
 
+        {/* Demo Trigger Button */}
         <button
           onClick={onSimulate}
           disabled={isSimulating}
-          className="bg-tactical-crimson/20 hover:bg-tactical-crimson/40 text-tactical-crimson border border-tactical-crimson/50 hover:border-tactical-crimson px-3 py-1.5 rounded text-xs font-mono font-semibold flex items-center space-x-1.5 transition-all shadow-tactical-crimson disabled:opacity-50"
+          className={`h-8 px-3 rounded text-xs font-mono font-semibold flex items-center space-x-1.5 transition-all shadow-sm ${
+            isSimulating
+              ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 cursor-wait"
+              : "bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 hover:shadow-[0_0_12px_rgba(0,240,255,0.25)] active:scale-95"
+          }`}
         >
           {isSimulating ? (
             <>
@@ -112,23 +136,11 @@ export const TopNav: React.FC<TopNavProps> = ({
             </>
           ) : (
             <>
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Simulate 1930 Heist</span>
+              <Play className="w-3 h-3 fill-current text-cyan-400" />
+              <span>Simulate Live Incident</span>
             </>
           )}
         </button>
-
-        {/* WebSocket Status */}
-        <div
-          className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-mono border ${
-            connected
-              ? "bg-tactical-green/10 text-tactical-green border-tactical-green/40 shadow-tactical-green/20"
-              : "bg-tactical-crimson/10 text-tactical-crimson border-tactical-crimson/40 animate-pulse"
-          }`}
-        >
-          <span className={`w-2 h-2 rounded-full ${connected ? "bg-tactical-green animate-ping" : "bg-tactical-crimson"}`} />
-          <span>{connected ? "LIVE FEED" : "OFFLINE"}</span>
-        </div>
       </div>
     </header>
   );

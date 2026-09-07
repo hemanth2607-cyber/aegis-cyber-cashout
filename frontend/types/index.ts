@@ -81,6 +81,7 @@ export interface Prediction {
   remaining_window_minutes?: number;
   graph_trace?: GraphTrace;
   initial_amount?: number;
+  peeled_amount?: number;
   victim_bank?: string;
   fraud_category?: string;
   interdiction_outcome?: string;

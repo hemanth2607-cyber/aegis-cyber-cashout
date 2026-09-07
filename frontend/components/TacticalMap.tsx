@@ -297,16 +297,17 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
         current_cash: 250000,
       };
 
-      const atmCoord: [number, number] = [primaryAtm.lat, primaryAtm.lon];
+      // Target ATM Kiosk location (centered inside target H3 cell)
+      const atmCoord: [number, number] = [targetCoord[0], targetCoord[1]];
 
-      // Pulsing Radar Ring Icon
+      // Symmetrically centered ATM Marker
       const atmRadarIcon = L.divIcon({
         className: "custom-atm-marker",
         html: `
-          <div class="relative flex items-center justify-center w-12 h-12 -ml-6 -mt-6 pointer-events-none">
-            <!-- Pulsing outer waves -->
-            <div class="absolute w-12 h-12 rounded-full border border-red-500/70 animate-ping opacity-60"></div>
-            <div class="absolute w-8 h-8 rounded-full border border-red-500 animate-pulse opacity-80"></div>
+          <div class="relative w-10 h-10 flex items-center justify-center pointer-events-none">
+            <!-- Pulsing outer radar waves -->
+            <div class="absolute w-10 h-10 rounded-full border border-red-500/80 animate-ping opacity-60"></div>
+            <div class="absolute w-7 h-7 rounded-full border border-red-500 animate-pulse opacity-80"></div>
             <!-- Center ATM core pin -->
             <div class="relative z-10 w-6 h-6 rounded-md bg-red-600 border border-red-300 shadow-[0_0_16px_rgba(239,68,68,0.9)] flex items-center justify-center pointer-events-auto">
               <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -318,8 +319,8 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
             </div>
           </div>
         `,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
       });
 
       const atmMarker = L.marker(atmCoord, { icon: atmRadarIcon }).addTo(map);
@@ -337,56 +338,93 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
       );
       newAtms.push(atmMarker);
 
-      // 3. Police Patrol Car (PCR-North-14) with Route Polyline & Live Floating ETA Tag
-      // Police Origin: Rohini Sector 3 Patrol Post
+      // 3. Police Patrol Car (PCR-North-14) with Active Intercept Route
+      // Police Origin Station: Beat 14 Dispatch Post (~2.8 km away)
       const policeOrigin: [number, number] = [
-        targetCoord[0] - 0.024,
-        targetCoord[1] - 0.028,
+        atmCoord[0] - 0.022,
+        atmCoord[1] - 0.028,
       ];
 
-      // Route waypoint intermediate
+      // Intermediate road corridor junction
       const waypoint: [number, number] = [
-        targetCoord[0] - 0.010,
-        targetCoord[1] - 0.014,
+        atmCoord[0] - 0.009,
+        atmCoord[1] - 0.013,
       ];
+
+      // Interpolate current car coordinates precisely along the corridor
+      const currentCarCoord: [number, number] =
+        patrolProgress <= 0.5
+          ? [
+              policeOrigin[0] + (waypoint[0] - policeOrigin[0]) * (patrolProgress * 2),
+              policeOrigin[1] + (waypoint[1] - policeOrigin[1]) * (patrolProgress * 2),
+            ]
+          : [
+              waypoint[0] + (atmCoord[0] - waypoint[0]) * ((patrolProgress - 0.5) * 2),
+              waypoint[1] + (atmCoord[1] - waypoint[1]) * ((patrolProgress - 0.5) * 2),
+            ];
 
       if (showPatrolRoute) {
-        // Route polyline from police car to ATM
-        const routeCoords: [number, number][] = [policeOrigin, waypoint, atmCoord];
-        const routePoly = L.polyline(routeCoords, {
+        // Origin Station Marker
+        const originIcon = L.divIcon({
+          className: "custom-origin-marker",
+          html: `
+            <div class="relative w-6 h-6 flex items-center justify-center">
+              <div class="w-3 h-3 rounded-full bg-slate-600 border border-slate-400"></div>
+              <div class="absolute -bottom-4 whitespace-nowrap text-[9px] font-mono text-slate-400 bg-black/70 px-1 rounded border border-white/10">
+                Beat-14 Post
+              </div>
+            </div>
+          `,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
+        const originMarker = L.marker(policeOrigin, { icon: originIcon }).addTo(map);
+        newPolice.push(originMarker);
+
+        // A. Traversed Trail (behind the patrol car): subtle dimmed path
+        const traversedCoords: [number, number][] =
+          patrolProgress <= 0.5
+            ? [policeOrigin, currentCarCoord]
+            : [policeOrigin, waypoint, currentCarCoord];
+
+        const traversedPoly = L.polyline(traversedCoords, {
           color: "#00F0FF",
-          weight: 3,
-          dashArray: "8, 8",
+          weight: 2,
+          opacity: 0.35,
+          dashArray: "3, 6",
+        }).addTo(map);
+        newRoutes.push(traversedPoly);
+
+        // B. Active Remaining Distance Route (directly from Patrol Car to Destination ATM):
+        // Highly visible, glowing, animated electric cyan dashed line
+        const remainingRouteCoords: [number, number][] =
+          patrolProgress <= 0.5
+            ? [currentCarCoord, waypoint, atmCoord]
+            : [currentCarCoord, atmCoord];
+
+        const activeRoutePoly = L.polyline(remainingRouteCoords, {
+          color: "#00F0FF",
+          weight: 3.5,
+          dashArray: "6, 6",
           className: "flow-polyline",
         }).addTo(map);
-        newRoutes.push(routePoly);
+        newRoutes.push(activeRoutePoly);
 
-        // Interpolate live car coordinate based on progress
-        const currentCarCoord: [number, number] =
-          patrolProgress <= 0.5
-            ? [
-                policeOrigin[0] + (waypoint[0] - policeOrigin[0]) * (patrolProgress * 2),
-                policeOrigin[1] + (waypoint[1] - policeOrigin[1]) * (patrolProgress * 2),
-              ]
-            : [
-                waypoint[0] + (atmCoord[0] - waypoint[0]) * ((patrolProgress - 0.5) * 2),
-                waypoint[1] + (atmCoord[1] - waypoint[1]) * ((patrolProgress - 0.5) * 2),
-              ];
-
-        // Police Car DivIcon with live floating ETA tag
+        // Symmetrically centered Police Car DivIcon (zero offset, perfectly centered on currentCarCoord)
         const policeCarIcon = L.divIcon({
           className: "custom-pcr-marker",
           html: `
-            <div class="relative flex items-center justify-center -ml-16 -mt-8">
-              <!-- Floating live ETA badge -->
-              <div class="absolute -top-7 flex items-center space-x-1 px-2 py-0.5 rounded bg-[#0E1422]/90 border border-cyan-400/60 shadow-[0_0_10px_rgba(0,240,255,0.3)] text-[10px] font-mono text-cyan-300 font-bold whitespace-nowrap backdrop-blur-md">
+            <div class="relative w-10 h-10 flex items-center justify-center">
+              <!-- Floating live ETA badge (centered directly above the car) -->
+              <div class="absolute -top-7 left-1/2 -translate-x-1/2 flex items-center space-x-1 px-2 py-0.5 rounded bg-[#0E1422]/95 border border-cyan-400/70 shadow-[0_0_12px_rgba(0,240,255,0.4)] text-[10px] font-mono text-cyan-300 font-bold whitespace-nowrap backdrop-blur-md z-30">
                 <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
                 <span>PCR-North-14</span>
-                <span class="text-white">|</span>
+                <span class="text-white/60">|</span>
                 <span class="text-emerald-400">${(3.8 * (1 - patrolProgress * 0.7)).toFixed(1)} min ETA</span>
               </div>
-              <!-- Police Patrol Icon Badge -->
-              <div class="w-8 h-8 rounded-full bg-cyan-500/20 border-2 border-cyan-400 shadow-[0_0_14px_rgba(0,240,255,0.8)] flex items-center justify-center bg-[#0B0F17]">
+
+              <!-- Police Patrol Icon Badge (Centered exactly at coordinate) -->
+              <div class="relative z-20 w-8 h-8 rounded-full bg-[#0B0F17] border-2 border-cyan-400 shadow-[0_0_16px_rgba(0,240,255,0.9)] flex items-center justify-center">
                 <svg class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.25a1 1 0 0 0-.8.4L2 11l-1.16.86A1 1 0 0 0 0 12.85V16h3"/>
                   <circle cx="6.5" cy="16.5" r="2.5"/>
@@ -395,8 +433,8 @@ export const TacticalMap: React.FC<TacticalMapProps> = ({
               </div>
             </div>
           `,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
         });
 
         const pcrMarker = L.marker(currentCarCoord, { icon: policeCarIcon }).addTo(map);

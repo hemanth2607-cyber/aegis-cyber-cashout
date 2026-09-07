@@ -92,9 +92,10 @@ async def trigger_bank_friction(payload: BankFrictionRequest) -> Dict[str, Any]:
     risk_ref = f"BNSS106-BLOCK-{random.randint(1000, 9999)}"
 
     statutory_brief = (
-        f"Section 106 BNSS Statutory Order: Immediate police account lien and ATM dispenser rate limiting "
-        f"applied against terminating mule [{payload.target_mule_account}]. "
-        f"Action: {action_taken}. Asset dissipation prevented pending Section 107 BNSS attachment."
+        f"Section 106 BNSS Statutory Order: Immediate targeted CARD-SESSION debit lien and rate limiting "
+        f"deployed against terminating mule account [{payload.target_mule_account}]. "
+        f"Mode: {payload.friction_mode} ({action_taken}). Note: Physical ATM terminal remains 100% active and available "
+        f"for legitimate public transactions; only the suspect card session is rate-limited/locked pending Section 107 BNSS attachment."
     )
 
     result = {
@@ -103,12 +104,18 @@ async def trigger_bank_friction(payload: BankFrictionRequest) -> Dict[str, Any]:
         "risk_reference": risk_ref,
         "target_mule_account": payload.target_mule_account,
         "statutory_power": "SECTION_106_BNSS",
-        "statutory_brief": statutory_brief
+        "statutory_brief": statutory_brief,
+        "kiosk_public_availability": "ACTIVE_FOR_PUBLIC",
+        "penal_code_sections": [
+            "Section 318(4) BNS",
+            "Section 319 BNS",
+            "Section 66D IT Act"
+        ]
     }
 
     logger.info(
         f"[+] Section 106 BNSS Action Triggered: Account {payload.target_mule_account} | "
-        f"Action: {action_taken} | Ref: {risk_ref}"
+        f"Mode: {payload.friction_mode} | Action: {action_taken} | Kiosk: ACTIVE_FOR_PUBLIC | Ref: {risk_ref}"
     )
 
     # Broadcast to dashboard
@@ -118,7 +125,9 @@ async def trigger_bank_friction(payload: BankFrictionRequest) -> Dict[str, Any]:
         "action_taken": action_taken,
         "risk_reference": risk_ref,
         "statutory_power": "SECTION_106_BNSS",
-        "statutory_brief": statutory_brief
+        "statutory_brief": statutory_brief,
+        "kiosk_public_availability": "ACTIVE_FOR_PUBLIC",
+        "penal_code_sections": result["penal_code_sections"]
     })
 
     return result

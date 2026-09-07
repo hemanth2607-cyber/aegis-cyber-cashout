@@ -131,7 +131,11 @@ class BankFrictionRequest(BaseModel):
         default="STEP_UP_AUTH",
         description="Friction type: STEP_UP_AUTH, TERMINAL_CASH_LIMIT, CARD_FREEZE"
     )
-    statutory_power: Optional[str] = "SECTION_106_BNSS"
+    friction_mode: str = Field(
+        default="CARD_SESSION_HOLD",
+        description="Friction mode: CARD_SESSION_HOLD, DYNAMIC_STEP_UP_AUTH, DAILY_LIMIT_ZERO"
+    )
+    statutory_power: str = "SECTION_106_BNSS"
 
     model_config = ConfigDict(extra="allow")
 
@@ -142,4 +146,10 @@ class BankFrictionResponse(BaseModel):
     risk_reference: str
     target_mule_account: Optional[str] = None
     statutory_power: str = "SECTION_106_BNSS"
-    statutory_brief: str = "Immediate police debit freeze, account lien, and ATM dispenser rate limiting enacted under Section 106 BNSS."
+    statutory_brief: str = "Immediate targeted card-session debit lien and rate limiting enacted under Section 106 BNSS (kiosk remains active for public)."
+    kiosk_public_availability: str = "ACTIVE_FOR_PUBLIC"
+    penal_code_sections: List[str] = [
+        "Section 318(4) BNS",
+        "Section 319 BNS",
+        "Section 66D IT Act"
+    ]

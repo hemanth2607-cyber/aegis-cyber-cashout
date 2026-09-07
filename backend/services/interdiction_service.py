@@ -43,55 +43,63 @@ def evaluate_interdiction_feasibility(
     Evaluates the formal sequential interdiction feasibility model:
     
     Condition 1 (Digital Pre-emption via Sec 106 BNSS):
-      t_digital = api_freeze_latency_sec / 60.0
-      Success if api_available and (t_digital < delta_t_hat_mins)
-      Sets indicator i_freeze = 1 if success, else 0
+      T_digital_freeze = api_freeze_latency_sec / 60.0
+      Success if api_available and (T_digital_freeze < delta_t_hat)
+      Sets indicator:
+        i_freeze = 1 if (api_available and t_digital_freeze_mins < delta_t_hat_mins) else 0
+      
+      Note: friction_delay_mins (tau_friction = +15.0m) represents targeted card-session 
+      latency injection, EMV transaction micro-delays, and dynamic step-up authentication 
+      at the banking switch (Sec 106 BNSS). This selectively isolates and rate-limits the 
+      suspect mule card session while preserving 100% kiosk uptime for legitimate citizens.
       
     Condition 2 (Physical Patrol Intercept):
-      t_physical = cad_route_delay_mins + (pcr_distance_km / max(1.0, pcr_speed_kmh)) * 60.0
+      T_physical_dispatch = cad_route_delay_mins + (pcr_distance_km / max(1.0, pcr_speed_kmh)) * 60.0
+      Success if:
+        T_physical_dispatch < delta_t_hat + (i_freeze * friction_delay_mins)
       
     Extended Interdiction Horizon:
-      effective_window_mins = delta_t_hat_mins + (i_freeze * friction_delay_mins)
-      time_margin_mins = effective_window_mins - t_physical_mins
+      effective_window_mins = delta_t_hat + (i_freeze * friction_delay_mins)
+      time_margin_mins = effective_window_mins - T_physical_dispatch
       
     4-State Outcome Matrix:
-      - (i_freeze == 1, time_margin >= 0): OPTIMAL_INTERDICTION
-      - (i_freeze == 1, time_margin < 0) : ASSET_PRESERVED_ONLY
-      - (i_freeze == 0, time_margin >= 0): KINETIC_INTERCEPT
-      - (i_freeze == 0, time_margin < 0) : INTERDICTION_FAILED
+      - (i_freeze == 1, time_margin >= 0): OPTIMAL_INTERDICTION (Card locked + courier intercepted)
+      - (i_freeze == 1, time_margin < 0) : ASSET_PRESERVED_ONLY (Funds preserved via card hold; courier fled)
+      - (i_freeze == 0, time_margin >= 0): KINETIC_INTERCEPT (Physical cordon achieved before dispense)
+      - (i_freeze == 0, time_margin < 0) : INTERDICTION_FAILED (Cashout occurred prior to arrival)
     """
-    # 1. Condition 1: Digital Pre-emption
-    t_digital_mins = api_freeze_latency_sec / 60.0
-    digital_freeze_success = bool(api_available and (t_digital_mins < delta_t_hat_mins))
+    # 1. Condition 1: Digital Pre-emption (Card-Session Freeze)
+    t_digital_freeze_mins = api_freeze_latency_sec / 60.0
+    digital_freeze_success = bool(api_available and (t_digital_freeze_mins < delta_t_hat_mins))
     i_freeze = 1 if digital_freeze_success else 0
 
-    # 2. Condition 2: Physical Patrol Intercept
+    # 2. Condition 2: Physical Patrol Intercept (CAD Dispatch)
     effective_speed = max(1.0, pcr_speed_kmh)
-    t_physical_mins = cad_route_delay_mins + (pcr_distance_km / effective_speed) * 60.0
+    t_physical_dispatch_mins = cad_route_delay_mins + (pcr_distance_km / effective_speed) * 60.0
 
-    # 3. Effective Intercept Window & Time Margin
+    # 3. Extended Intercept Window & Operational Margin
     effective_window_mins = delta_t_hat_mins + (i_freeze * friction_delay_mins)
-    time_margin_mins = effective_window_mins - t_physical_mins
+    time_margin_mins = effective_window_mins - t_physical_dispatch_mins
 
     # 4. 4-State Operational Outcome Classification
     if digital_freeze_success:
         if time_margin_mins >= 0:
             outcome = InterdictionOutcome.OPTIMAL_INTERDICTION
             operational_brief = (
-                f"OPTIMAL INTERDICTION: Digital hold successful (Sec 106 BNSS) + physical patrol arrival "
-                f"with {time_margin_mins:.1f}m buffer. Siphoned capital preserved and courier intercepted."
+                f"OPTIMAL INTERDICTION: Targeted card-session hold deployed (Sec 106 BNSS; kiosk remains available "
+                f"for public) + physical patrol arrival with {time_margin_mins:.1f}m buffer. Capital preserved and courier intercepted."
             )
         else:
             outcome = InterdictionOutcome.ASSET_PRESERVED_ONLY
             operational_brief = (
-                f"ASSET PRESERVED ONLY: Account lien active (Sec 106 BNSS); funds saved. Courier anticipated to flee "
-                f"prior to patrol arrival (deficit: {abs(time_margin_mins):.1f}m)."
+                f"ASSET PRESERVED ONLY: Card-session debit hold active (Sec 106 BNSS); funds saved. Courier anticipated to flee "
+                f"terminal prior to patrol arrival (deficit: {abs(time_margin_mins):.1f}m)."
             )
     else:
         if time_margin_mins >= 0:
             outcome = InterdictionOutcome.KINETIC_INTERCEPT
             operational_brief = (
-                f"KINETIC INTERCEPT: Digital hold unavailable/late; PCR beat patrol achieves physical cordon "
+                f"KINETIC INTERCEPT: Digital hold unconfirmed; PCR beat patrol achieves physical cordon "
                 f"with {time_margin_mins:.1f}m margin prior to cash dispense."
             )
         else:
@@ -105,7 +113,7 @@ def evaluate_interdiction_feasibility(
         outcome=outcome,
         digital_freeze_success=digital_freeze_success,
         effective_window_mins=round(effective_window_mins, 2),
-        patrol_eta_mins=round(t_physical_mins, 2),
+        patrol_eta_mins=round(t_physical_dispatch_mins, 2),
         time_margin_mins=round(time_margin_mins, 2),
         operational_brief=operational_brief
     )

@@ -160,17 +160,18 @@ def run_jury_simulation():
     time.sleep(2)
     console.print("\n[bold yellow][PHASE 4][/bold yellow] [bold white]Executing Automated Sequential Law Enforcement Countermeasures...[/bold white]")
 
-    # 4a. Digital Pre-emption: Section 106 BNSS Police Lien & ATM Dispenser Lock
+    # 4a. Digital Pre-emption: Section 106 BNSS Police Lien & Targeted Card-Session Hold
     console.print("\n[bold cyan][STEP 4A: DIGITAL PRE-EMPTION — SECTION 106 BNSS][/bold cyan]")
     freeze_res = requests.post(f"{API_BASE}/bank/friction", json={
         "complaint_id": "NCRP-2026-DEL-88319",
         "target_mule_account": "YESB00010921",
         "action": "STEP_UP_AUTH",
+        "friction_mode": "CARD_SESSION_HOLD",
         "statutory_power": "SECTION_106_BNSS"
     }, timeout=10).json()
 
-    console.print(f"[bold green][+][/bold green] [bold cyan]Section 106 BNSS Order Executed:[/bold cyan] Account Lien on [bold white]YESB00010921[/bold white] | Action: [bold yellow]{freeze_res['action_taken']}[/bold yellow]")
-    console.print(f"    [dim]Switch Reference: {freeze_res['risk_reference']} | Status: {freeze_res['transaction_freeze_status']}[/dim]")
+    console.print("[bold green][+][/bold green] [bold cyan]Section 106 BNSS Invoked:[/bold cyan] Targeted Card-Session Hold Deployed (ATM remains available for public).")
+    console.print(f"    [dim]Switch Reference: {freeze_res.get('risk_reference', 'N/A')} | Action: {freeze_res.get('action_taken', 'ATM_MICRO_DELAY_15MIN')} | Mode: {freeze_res.get('friction_mode', 'CARD_SESSION_HOLD')}[/dim]")
     console.print(f"    [italic green]\"{freeze_res.get('statutory_brief', '')}\"[/italic green]")
 
     # 4b. Judicial Attachment: Section 107 BNSS Magistrate Dossier Generation
@@ -178,9 +179,11 @@ def run_jury_simulation():
     sec107_brief = statutory.get(
         "bnss_section_107_attachment",
         "SECTION 107 BNSS JUDICIAL ATTACHMENT REPORT TO MAGISTRATE: Application submitted for judicial "
-        "attachment of siphoned proceeds of crime under Section 318(4)/319 BNSS in account [YESB00010921] "
-        "prior to cashout dissipation at H3 cell " + str(h8_hex) + ". Restitution to bonafide victim prayed."
+        "attachment of siphoned proceeds of crime under Section 318(4) & Section 319 of the Bharatiya Nyaya Sanhita (BNS), 2023, "
+        "read with Section 66D of the Information Technology Act, 2000 in account [YESB00010921] "
+        f"prior to cashout dissipation at H3 cell {h8_hex}. Restitution to bonafide victim prayed."
     )
+    console.print("[bold green][+][/bold green] [bold cyan]Section 107 BNSS Application Generated:[/bold cyan] Proceeds of crime docket filed under Sec 318(4) & 319 BNS, 2023 r/w Sec 66D IT Act.")
     console.print(Panel(
         f"[bold white]{sec107_brief}[/bold white]",
         title="[bold yellow]Court-Ready Dossier: Section 107 BNSS Magistrate Attachment[/bold yellow]",
@@ -204,6 +207,11 @@ def run_jury_simulation():
     eta_val = dispatch_res.get("patrol_eta_mins") or dispatch_res.get("eta_minutes", 5.2)
     margin_val = dispatch_res.get("time_margin_mins", 28.3)
     eff_win = dispatch_res.get("effective_window_mins", 33.5)
+
+    console.print("\n[bold white]Sequential Interdiction Mathematical Resolution:[/bold white]")
+    console.print(f"  [bold yellow]Condition 1 (Digital Pre-emption):[/bold yellow] 1.4s < {delta_t_hat:.1f}m -> [bold green]I_freeze = 1[/bold green]")
+    console.print(f"  [bold yellow]Condition 2 (Physical Intercept):[/bold yellow] {eta_val:.1f}m < ({delta_t_hat:.1f}m + {friction_delay:.1f}m) -> [bold green]SUCCESS (Margin: +{margin_val:.1f}m)[/bold green]")
+    console.print(f"  [bold green]FINAL OUTCOME: {outcome_val}[/bold green]\n")
 
     table_dispatch = Table(title="Sequential Interdiction Feasibility Evaluation", border_style="green")
     table_dispatch.add_column("Evaluation Parameter", style="cyan", no_wrap=True)

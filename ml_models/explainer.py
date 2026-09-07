@@ -98,11 +98,11 @@ class TacticalSHAPExplainer:
         target_h3: str,
         top_risk_drivers: List[Dict[str, Any]],
         terminating_account: str = "SUSPECT_MULE_ACCT"
-    ) -> Dict[str, str]:
+    ) -> Dict[str, Any]:
         """
-        Generates dual statutory compliance briefs under Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023:
-        1. Section 106 BNSS: Police field order for immediate account lien, UPI freeze, and ATM rate limiting.
-        2. Section 107 BNSS: Formal police application to Magistrate for judicial attachment of proceeds of crime.
+        Generates dual statutory compliance briefs under India's criminal codes:
+        - Procedural: Section 106 BNSS (Police seizure/lien power) & Section 107 BNSS (Magistrate attachment of proceeds of crime).
+        - Substantive: Section 318(4) & Section 319 of the Bharatiya Nyaya Sanhita (BNS), 2023, read with Section 66D of the IT Act, 2000.
         """
         primary_driver = (
             top_risk_drivers[0]["description"]
@@ -114,24 +114,32 @@ class TacticalSHAPExplainer:
             f"SECTION 106 BNSS POLICE FIELD SEIZURE & LIEN ORDER: "
             f"Dual-stage TreeSHAP algorithmic inference validates an active cashout trajectory "
             f"(Confidence: {confidence_score * 100:.1f}%, Horizon: {predicted_minutes:.1f}m) targeting H3 cell {target_h3}. "
-            f"Immediate police lien and debit freeze are hereby invoked under Section 106 BNSS against terminating account "
-            f"[{terminating_account}] and connected payment switches (IMPS/UPI/AePS). Primary risk driver: {primary_driver}. "
-            f"Mandates immediate ATM dispenser rate limiting and card blocking to halt dissipation of siphoned capital."
+            f"Invoking Section 106 BNSS (Police seizure/lien power), an immediate targeted CARD-SESSION debit lien and EMV transaction "
+            f"latency hold are ordered against terminating account [{terminating_account}] and associated payment switches (IMPS/UPI/AePS). "
+            f"Primary risk driver: {primary_driver}. The physical ATM/CSP terminal remains fully operational for legitimate public transactions, "
+            f"while the specific suspect card session is isolated, rate-limited, and blocked to prevent asset dissipation."
         )
 
         section_107_attachment = (
             f"SECTION 107 BNSS JUDICIAL ATTACHMENT REPORT TO MAGISTRATE: "
-            f"Formal investigation report submitted pursuant to Section 107 BNSS praying for judicial confirmation "
-            f"of digital attachment and asset freezing regarding proceeds of crime (punishable under Sections 318(4) & 319 BNSS). "
-            f"Forensic telemetry and TreeSHAP attribution substantiate that funds in account [{terminating_account}] "
-            f"originated from cognizable cyber extortion/fraud, with imminent dissipation scheduled at H3 cell {target_h3}. "
-            f"Prayer for confirmation of lien and eventual restitution of funds to the bonafide victim."
+            f"Formal police investigation report submitted pursuant to Section 107 BNSS (Magistrate attachment of proceeds of crime) "
+            f"praying for judicial attachment and confirmation of freezing orders regarding proceeds of crime arising from offenses "
+            f"punishable under Section 318(4) (Cheating) & Section 319 (Cheating by personation) of the Bharatiya Nyaya Sanhita (BNS), 2023, "
+            f"read with Section 66D of the Information Technology Act, 2000. Forensic telemetry and TreeSHAP attribution establish that "
+            f"siphoned funds in terminating account [{terminating_account}] are slated for immediate cash extraction at H3 cell {target_h3}. "
+            f"Formal prayer for judicial confirmation of lien and eventual restitution of funds to the bonafide victim."
         )
 
         return {
             "bnss_section_106_warrant": section_106_warrant,
             "bnss_section_107_attachment": section_107_attachment,
-            "statutory_power": "SECTION_106_AND_107_BNSS"
+            "statutory_power": "SECTION_106_AND_107_BNSS",
+            "procedural_sections": ["Section 106 BNSS", "Section 107 BNSS"],
+            "substantive_sections": [
+                "Section 318(4) BNS, 2023",
+                "Section 319 BNS, 2023",
+                "Section 66D IT Act, 2000"
+            ]
         }
 
     def explain_prediction(

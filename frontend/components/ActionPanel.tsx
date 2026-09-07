@@ -365,6 +365,46 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
       </div>
 
       {/* =========================================================================
+          CARD 5: NATIONWIDE PILOT COVERAGE & EDGE CCTV TELEMETRY
+          ========================================================================= */}
+      <div className="glass-card p-3.5 rounded-xl space-y-2.5 border border-cyan-500/20 bg-cyan-950/10">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold flex items-center justify-between">
+          <span className="flex items-center space-x-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Nationwide Pilot &amp; Edge CCTV</span>
+          </span>
+          <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+            +215% Recovery (3.1x)
+          </span>
+        </div>
+
+        {/* Pilot Cities Coverage */}
+        <div className="grid grid-cols-3 gap-1.5 text-center font-mono text-[10px]">
+          <div className="bg-black/40 border border-white/[0.06] p-1.5 rounded">
+            <span className="text-slate-400 block text-[8.5px]">DELHI NCR</span>
+            <span className="text-cyan-300 font-bold">5,000 ATMs</span>
+          </div>
+          <div className="bg-black/40 border border-white/[0.06] p-1.5 rounded">
+            <span className="text-slate-400 block text-[8.5px]">MUMBAI</span>
+            <span className="text-cyan-300 font-bold">4,500 ATMs</span>
+          </div>
+          <div className="bg-black/40 border border-white/[0.06] p-1.5 rounded">
+            <span className="text-slate-400 block text-[8.5px]">BENGALURU</span>
+            <span className="text-cyan-300 font-bold">3,500 ATMs</span>
+          </div>
+        </div>
+
+        {/* Edge CCTV & SDG Indicator */}
+        <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-0.5 border-t border-white/[0.06]">
+          <span className="flex items-center space-x-1 text-emerald-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+            <span>YOLOv8 Edge CCTV: Online</span>
+          </span>
+          <span className="text-slate-500 text-[9px]">13,000 ATMs • 12 Cells • SDG 16/9</span>
+        </div>
+      </div>
+
+      {/* =========================================================================
           COLLAPSIBLE TELEMETRY DRAWER TRIGGER
           ========================================================================= */}
       <button

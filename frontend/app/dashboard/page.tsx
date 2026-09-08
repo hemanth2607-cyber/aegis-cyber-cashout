@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Shield, RefreshCw } from "lucide-react";
 import AlgorithmicJourneyPanel, { Telemetry } from "../../components/AlgorithmicJourneyPanel";
@@ -284,6 +285,14 @@ export default function DashboardPage() {
               {connected ? "TELEMETRY LIVE" : "DISCONNECTED"}
             </span>
           </div>
+
+          {/* Dual-Mode Simulation Link */}
+          <Link
+            href="/simulation"
+            className="hidden sm:flex items-center space-x-1.5 bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-500/40 text-cyan-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+          >
+            <span>⚡ Dual-Mode Simulation</span>
+          </Link>
 
           {/* Simulate Cyber Heist Button */}
           <button

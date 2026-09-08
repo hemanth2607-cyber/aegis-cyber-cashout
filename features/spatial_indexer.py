@@ -5,7 +5,7 @@ Maps terminals, spatial hexagons (H3 Res 7, 8, 9), and metric KDTree spatial loo
 
 import os
 import math
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 import numpy as np
 import pandas as pd
 import h3

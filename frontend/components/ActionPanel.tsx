@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ShieldCheck, Car, Clock, Zap } from "lucide-react";
+import { ShieldCheck, Car, Clock, Zap, FileText } from "lucide-react";
 
 export interface ActionPanelProps {
   naturalWindowMin: number;      // Δt̂
@@ -28,6 +28,7 @@ export default function ActionPanel({
   const [cardLocked, setCardLocked] = useState(false);
   const [loadingCAD, setLoadingCAD] = useState(false);
   const [loadingFriction, setLoadingFriction] = useState(false);
+  const [downloadingDocket, setDownloadingDocket] = useState(false);
 
   // Synchronize countdown when naturalWindowMin changes
   useEffect(() => {
@@ -96,6 +97,33 @@ export default function ActionPanel({
       if (onFrictionSuccess) onFrictionSuccess({ action_taken: "ATM_MICRO_DELAY_15MIN" });
     } finally {
       setLoadingFriction(false);
+    }
+  }
+
+  async function downloadDocket() {
+    if (downloadingDocket) return;
+    setDownloadingDocket(true);
+    try {
+      const res = await fetch("/api/v1/docket/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ complaint_id: alertId }),
+      });
+      if (!res.ok) throw new Error("Docket generation failed");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `BNSS_Docket_${alertId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.warn("Failed to download BNSS docket via POST, attempting direct link:", err);
+      window.open(`/api/v1/docket/${alertId}`, "_blank");
+    } finally {
+      setDownloadingDocket(false);
     }
   }
 
@@ -185,6 +213,20 @@ export default function ActionPanel({
             : cardLocked
             ? "CARD SESSION LOCKED (KIOSK 100% PUBLIC)"
             : "🛡 ACTIVATE SEC 106 BNSS CARD LOCK"}
+        </span>
+      </button>
+
+      {/* Button 3: Export BNSS Court Docket (PDF) */}
+      <button
+        onClick={downloadDocket}
+        disabled={downloadingDocket}
+        className="w-full rounded-xl py-3 px-4 text-xs font-bold tracking-wider transition-all flex items-center justify-center space-x-2 shadow-lg bg-slate-900/90 hover:bg-slate-800 active:scale-[0.98] text-cyan-300 border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:border-cyan-400"
+      >
+        <FileText className="w-4 h-4 text-cyan-400" />
+        <span>
+          {downloadingDocket
+            ? "COMPILING BNSS DOCKET (PDF)..."
+            : "⚖ EXPORT BNSS COURT DOCKET (PDF)"}
         </span>
       </button>
 

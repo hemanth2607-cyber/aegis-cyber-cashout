@@ -1,13 +1,9 @@
 // frontend/components/TacticalMap.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import Map, { Marker } from "react-map-gl/maplibre";
-import DeckGL from "@deck.gl/react";
-import { ArcLayer } from "@deck.gl/layers";
-import { H3HexagonLayer } from "@deck.gl/geo-layers";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { useRoadPatrol } from "../hooks/useRoadPatrol";
+import React, { useEffect, useRef, useState } from "react";
+import "leaflet/dist/leaflet.css";
+import { fetchRoadRoute, RouteResult, PatrolTick, createPatrolAnimator, LatLng } from "../utils/roadRouter";
 
 export interface FundHop {
   from: [number, number]; // [lng, lat]
@@ -36,98 +32,319 @@ export default function TacticalMap({
   h3Resolution = 8,
   confidenceScore = 0.88,
 }: TacticalMapProps) {
-  const [viewState, setViewState] = useState({
-    latitude: suspectAtm?.lat || 15.5212,
-    longitude: suspectAtm?.lng || 73.7699,
-    zoom: 12.8,
-    pitch: 45,
-    bearing: -15,
-  });
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const layersGroupRef = useRef<any>(null);
+  const patrolGroupRef = useRef<any>(null);
+  const patrolCancelRef = useRef<(() => void) | null>(null);
 
-  // Cycle arc opacity for dynamic pulsating fund flow effect
-  const [pulsePhase, setPulsePhase] = useState(0);
+  const [patrolInfo, setPatrolInfo] = useState<PatrolTick | null>(null);
+  const [pulseTick, setPulseTick] = useState(0);
+
+  // Smooth continuous flow ticker
   useEffect(() => {
     let animId: number;
-    function pulse() {
-      setPulsePhase((prev) => (prev + 0.05) % (Math.PI * 2));
-      animId = requestAnimationFrame(pulse);
+    function loop() {
+      setPulseTick((prev) => (prev + 0.04) % 1);
+      animId = requestAnimationFrame(loop);
     }
-    animId = requestAnimationFrame(pulse);
+    animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
   }, []);
 
-  // Update viewState if suspectAtm coordinates change
+  // Initialize Leaflet map
   useEffect(() => {
-    if (suspectAtm?.lat && suspectAtm?.lng) {
-      setViewState((prev) => ({
-        ...prev,
-        latitude: suspectAtm.lat,
-        longitude: suspectAtm.lng,
-      }));
-    }
+    if (!mapContainerRef.current || mapInstanceRef.current) return;
+
+    let isMounted = true;
+
+    import("leaflet").then((L) => {
+      if (!isMounted || !mapContainerRef.current) return;
+
+      const map = L.map(mapContainerRef.current, {
+        center: [suspectAtm?.lat || 15.5212, suspectAtm?.lng || 73.7699],
+        zoom: 12.5,
+        zoomControl: false,
+        attributionControl: false,
+        fadeAnimation: true,
+      });
+
+      // Esri World Dark Gray Canvas Base (100% reliable, zero tokens)
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 16,
+          subdomains: ["server", "services"],
+        }
+      ).addTo(map);
+
+      // Esri Reference Labels
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 16,
+          opacity: 0.75,
+        }
+      ).addTo(map);
+
+      const layersGroup = L.layerGroup().addTo(map);
+      const patrolGroup = L.layerGroup().addTo(map);
+
+      mapInstanceRef.current = map;
+      layersGroupRef.current = layersGroup;
+      patrolGroupRef.current = patrolGroup;
+
+      setTimeout(() => {
+        if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
+      }, 200);
+    });
+
+    return () => {
+      isMounted = false;
+      if (patrolCancelRef.current) {
+        patrolCancelRef.current();
+        patrolCancelRef.current = null;
+      }
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // ResizeObserver for canvas integrity
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const ro = new ResizeObserver(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    });
+    ro.observe(mapContainerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  // Recenter if suspect coordinates update
+  useEffect(() => {
+    if (!mapInstanceRef.current || !suspectAtm?.lat || !suspectAtm?.lng) return;
+    mapInstanceRef.current.panTo([suspectAtm.lat, suspectAtm.lng], { animate: true, duration: 1.0 });
   }, [suspectAtm?.lat, suspectAtm?.lng]);
 
-  const patrol = useRoadPatrol(
-    dispatchActive ? pcrBase : null,
-    suspectAtm ? { lat: suspectAtm.lat, lng: suspectAtm.lng } : null
-  );
+  // Render 2D layers (Markers, 2D lines, H3 Hexagons)
+  useEffect(() => {
+    if (!mapInstanceRef.current || !layersGroupRef.current) return;
 
-  // Dynamic alpha based on sine wave
-  const arcAlpha = Math.round(180 + 55 * Math.sin(pulsePhase));
+    import("leaflet").then((L) => {
+      const group = layersGroupRef.current;
+      if (!group) return;
 
-  const arcLayer = useMemo(
-    () =>
-      new ArcLayer({
-        id: "fund-flow-arcs",
-        data: fundFlow,
-        getSourcePosition: (d: FundHop) => d.from,
-        getTargetPosition: (d: FundHop) => d.to,
-        getSourceColor: [245, 158, 11, arcAlpha], // Glowing amber
-        getTargetColor: [239, 68, 68, 240],       // Red extraction target
-        getWidth: 4,
-        greatCircle: true,
-      }),
-    [fundFlow, arcAlpha]
-  );
+      group.clearLayers();
 
-  // Switch resolution based on confidence or prop (8 or 9)
-  const activeRes = confidenceScore > 0.85 ? Math.max(h3Resolution, 9) : h3Resolution;
+      // 1. Origin Marker
+      if (originMarker) {
+        const originIcon = L.divIcon({
+          className: "origin-icon",
+          html: `
+            <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+              <div style="position: absolute; width: 32px; height: 32px; border-radius: 50%; background: rgba(251, 191, 36, 0.4); animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+              <div style="width: 18px; height: 18px; border-radius: 50%; background: #f59e0b; border: 2px solid #ffffff; box-shadow: 0 0 12px #f59e0b; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; color: #000;">v₀</div>
+              <div style="margin-top: 4px; white-space: nowrap; background: rgba(10, 15, 29, 0.95); border: 1px solid #f59e0b; padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 9px; color: #f59e0b; font-weight: bold;">
+                ${originMarker.label || "Victim Root v₀"}
+              </div>
+            </div>
+          `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+        L.marker([originMarker.lat, originMarker.lng], { icon: originIcon }).addTo(group);
+      }
 
-  const hexLayer = useMemo(
-    () =>
-      new H3HexagonLayer({
-        id: "predicted-hotspot",
-        data: hotspotH3Indices.map((h) => ({ hex: h, res: activeRes })),
-        getHexagon: (d: { hex: string }) => d.hex,
-        getFillColor: [239, 68, 68, 70],
-        getLineColor: [0, 240, 255, 220],
-        lineWidthMinPixels: 2.5,
-        extruded: false,
-      }),
-    [hotspotH3Indices, activeRes]
-  );
+      // 2. 2D Fund Flow Lines
+      if (fundFlow && fundFlow.length > 0) {
+        fundFlow.forEach((hop) => {
+          const p1: [number, number] = [hop.from[1], hop.from[0]];
+          const p2: [number, number] = [hop.to[1], hop.to[0]];
 
-  // Use CartoDB Dark Matter if no Mapbox token is provided to guarantee 100% offline/free functionality
-  const mapStyleUrl = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-    ? "mapbox://styles/mapbox/dark-v11"
-    : "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+          // Glow base line
+          L.polyline([p1, p2], {
+            color: "#00f0ff",
+            weight: 5,
+            opacity: 0.25,
+            lineCap: "round",
+          }).addTo(group);
+
+          // Core 2D dashed track
+          L.polyline([p1, p2], {
+            color: "#00f0ff",
+            weight: 3,
+            opacity: 0.75,
+            dashArray: "6, 10",
+            lineCap: "round",
+          }).addTo(group);
+
+          // Moving 2D tracer pulse
+          const curLat = p1[0] + (p2[0] - p1[0]) * pulseTick;
+          const curLng = p1[1] + (p2[1] - p1[1]) * pulseTick;
+
+          const tracerIcon = L.divIcon({
+            className: "tracer-node",
+            html: `
+              <div style="width: 10px; height: 10px; border-radius: 50%; background: #00f0ff; border: 2px solid #ffffff; box-shadow: 0 0 10px #00f0ff;"></div>
+            `,
+            iconSize: [10, 10],
+            iconAnchor: [5, 5],
+          });
+          L.marker([curLat, curLng], { icon: tracerIcon }).addTo(group);
+        });
+      }
+
+      // 3. Suspect Target ATM Marker
+      if (suspectAtm) {
+        const atmIcon = L.divIcon({
+          className: "atm-icon",
+          html: `
+            <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+              <div style="position: absolute; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #ef4444; animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+              <div style="width: 22px; height: 22px; border-radius: 50%; background: #ef4444; border: 2px solid #ffffff; box-shadow: 0 0 16px #ef4444; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #ffffff;">ATM</div>
+              
+              <div style="margin-top: 4px; white-space: nowrap; background: rgba(10, 15, 29, 0.95); border: 1px solid #ef4444; padding: 2px 8px; border-radius: 6px; font-family: monospace; font-size: 10px; font-weight: bold; color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.8);">
+                ${suspectAtm.name || "Target Cashout ATM"}
+              </div>
+
+              ${
+                suspectAtm.frozen
+                  ? `
+                <div style="margin-top: 3px; white-space: nowrap; background: rgba(5, 30, 20, 0.95); border: 1px solid #10b981; padding: 2px 8px; border-radius: 6px; font-family: monospace; font-size: 9px; font-weight: bold; color: #10b981; box-shadow: 0 0 10px rgba(16,185,129,0.4);">
+                  🛡 CARD SESSION FROZEN (Sec 106 BNSS) • Kiosk 100% Public
+                </div>
+              `
+                  : ""
+              }
+            </div>
+          `,
+          iconSize: [44, 44],
+          iconAnchor: [22, 22],
+        });
+        L.marker([suspectAtm.lat, suspectAtm.lng], { icon: atmIcon }).addTo(group);
+      }
+
+      // 4. H3 Hexagon Clusters
+      if (hotspotH3Indices && hotspotH3Indices.length > 0) {
+        const hexCoords: [number, number][] = [
+          [15.534, 73.755],
+          [15.542, 73.765],
+          [15.538, 73.782],
+          [15.523, 73.786],
+          [15.512, 73.774],
+          [15.516, 73.758],
+        ];
+
+        L.polygon(hexCoords, {
+          color: "#ef4444",
+          weight: 2,
+          opacity: 0.9,
+          fillColor: "#ef4444",
+          fillOpacity: 0.2,
+          dashArray: "4, 6",
+        }).addTo(group);
+      }
+    });
+  }, [originMarker, fundFlow, hotspotH3Indices, suspectAtm, pulseTick]);
+
+  // 5. Patrol Dispatch Road Routing
+  useEffect(() => {
+    if (!mapInstanceRef.current || !patrolGroupRef.current) return;
+
+    if (!dispatchActive) {
+      if (patrolCancelRef.current) {
+        patrolCancelRef.current();
+        patrolCancelRef.current = null;
+      }
+      patrolGroupRef.current.clearLayers();
+      setPatrolInfo(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    import("leaflet").then(async (L) => {
+      const group = patrolGroupRef.current;
+      if (!group || !isMounted) return;
+
+      group.clearLayers();
+
+      const origin: LatLng = pcrBase || { lat: 15.5449, lng: 73.7517 };
+      const dest: LatLng = suspectAtm || { lat: 15.5212, lng: 73.7699 };
+
+      const route: RouteResult = await fetchRoadRoute(origin, dest);
+      if (!isMounted) return;
+
+      const latLngs: [number, number][] = route.coordinates.map((c) => [c.lat, c.lng]);
+
+      // 2D Road track
+      L.polyline(latLngs, {
+        color: "#10b981",
+        weight: 5,
+        opacity: 0.85,
+        lineCap: "round",
+        lineJoin: "round",
+      }).addTo(group);
+
+      const carIcon = (bearingDeg: number) =>
+        L.divIcon({
+          className: "patrol-car-icon",
+          html: `
+            <div style="transform: rotate(${bearingDeg}deg); font-size: 26px; filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.9));">
+              🚓
+            </div>
+          `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+      let marker: any = null;
+
+      patrolCancelRef.current = createPatrolAnimator(route, 35, (tick) => {
+        if (!isMounted) return;
+        setPatrolInfo(tick);
+
+        if (!marker) {
+          marker = L.marker([tick.position.lat, tick.position.lng], {
+            icon: carIcon(tick.bearingDeg),
+            zIndexOffset: 1000,
+          }).addTo(group);
+        } else {
+          marker.setLatLng([tick.position.lat, tick.position.lng]);
+          marker.setIcon(carIcon(tick.bearingDeg));
+        }
+      });
+    });
+
+    return () => {
+      isMounted = false;
+      if (patrolCancelRef.current) {
+        patrolCancelRef.current();
+        patrolCancelRef.current = null;
+      }
+    };
+  }, [dispatchActive, pcrBase, suspectAtm]);
 
   return (
     <div className="relative h-full w-full rounded-2xl overflow-hidden border border-white/[0.1] bg-[#070B14] shadow-2xl">
       {/* HUD Top Overlay */}
-      <div className="absolute top-4 left-4 z-20 flex items-center space-x-3 bg-black/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/[0.12] shadow-xl">
+      <div className="absolute top-4 left-4 z-[1000] flex items-center space-x-3 bg-black/85 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/[0.12] shadow-xl">
         <div className="flex items-center space-x-2">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500" />
           </span>
           <span className="font-mono text-xs font-bold tracking-wider text-cyan-300 uppercase">
-            Spatio-Temporal Tactical Grid
+            2D Tactical Grid
           </span>
         </div>
         <div className="h-4 w-[1px] bg-white/20" />
         <span className="font-mono text-[11px] text-slate-300">
-          H3 Res: <span className="text-amber-400 font-bold">{activeRes}</span> (~0.7km²)
+          H3 Res: <span className="text-amber-400 font-bold">{h3Resolution}</span> (~0.7km²)
         </span>
         <div className="h-4 w-[1px] bg-white/20" />
         <span className="font-mono text-[11px] text-slate-300">
@@ -135,91 +352,17 @@ export default function TacticalMap({
         </span>
       </div>
 
-      <DeckGL
-        viewState={viewState}
-        onViewStateChange={(e: any) => setViewState(e.viewState)}
-        controller={true}
-        layers={[arcLayer, hexLayer]}
-      >
-        <Map
-          mapStyle={mapStyleUrl}
-        >
-          {/* 1. Incident Origin Marker (v0, pulsating amber) */}
-          <Marker latitude={originMarker.lat} longitude={originMarker.lng} anchor="center">
-            <div className="relative flex flex-col items-center group cursor-pointer">
-              <div className="absolute -inset-2 rounded-full bg-amber-400/40 animate-ping" />
-              <div className="h-5 w-5 rounded-full bg-gradient-to-tr from-amber-600 to-amber-400 border-2 border-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.8)] z-10 flex items-center justify-center">
-                <span className="text-[9px] font-black text-black">v₀</span>
-              </div>
-              <div className="mt-1 whitespace-nowrap rounded bg-black/80 px-2 py-0.5 text-[9px] font-mono text-amber-300 border border-amber-500/40 backdrop-blur-sm">
-                {originMarker.label || "Victim Root Node (v₀)"}
-              </div>
-            </div>
-          </Marker>
+      {/* Map Container */}
+      <div ref={mapContainerRef} className="h-full w-full z-0" id="tactical-command-map" />
 
-          {/* 2. Suspect Target ATM Marker with Radar Ping & Shield Badge */}
-          <Marker latitude={suspectAtm.lat} longitude={suspectAtm.lng} anchor="center">
-            <div className="relative flex flex-col items-center group cursor-pointer">
-              {/* Radar Ping Ring */}
-              <div className="absolute -inset-4 rounded-full border-2 border-red-500/80 animate-ping pointer-events-none" />
-              <div className="absolute -inset-8 rounded-full border border-red-500/30 animate-pulse pointer-events-none" />
-              
-              {/* Core Terminal Pin */}
-              <div className="h-6 w-6 rounded-full bg-gradient-to-tr from-red-600 to-rose-500 border-2 border-white shadow-[0_0_20px_rgba(239,68,68,0.9)] z-10 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-white">ATM</span>
-              </div>
-
-              {/* Terminal Label */}
-              <div className="mt-1.5 whitespace-nowrap rounded-md bg-black/85 border border-red-500/60 px-2 py-0.5 text-[10px] font-mono text-white font-bold shadow-lg">
-                {suspectAtm.name || "Target Cashout Dispenser"}
-              </div>
-
-              {/* Card Session Shield Badge (Sec 106 BNSS) */}
-              {suspectAtm.frozen && (
-                <div className="mt-1 whitespace-nowrap rounded-md bg-emerald-950/90 border border-emerald-400 px-2.5 py-1 text-[10px] font-mono text-emerald-300 font-bold shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center space-x-1.5 animate-bounce">
-                  <span>🛡️</span>
-                  <span>CARD SESSION FROZEN (Sec 106 BNSS)</span>
-                </div>
-              )}
-            </div>
-          </Marker>
-
-          {/* 3. Patrol Car Marker (Rotates via bearingDeg, ETA label) */}
-          {patrol && (
-            <Marker latitude={patrol.position.lat} longitude={patrol.position.lng} anchor="center">
-              <div className="relative flex flex-col items-center">
-                <div
-                  className="transition-transform duration-100 ease-linear drop-shadow-[0_0_15px_rgba(0,240,255,0.9)]"
-                  style={{ transform: `rotate(${patrol.bearingDeg}deg)` }}
-                >
-                  <div className="w-8 h-8 rounded-full bg-cyan-950/90 border-2 border-cyan-400 flex items-center justify-center text-lg">
-                    🚓
-                  </div>
-                </div>
-                <div className="mt-1 whitespace-nowrap rounded bg-black/85 border border-cyan-500 px-2 py-0.5 font-mono text-[9px] text-cyan-300 font-bold">
-                  PCR BEAT-3 · {patrol.speedKmh} km/h
-                </div>
-              </div>
-            </Marker>
-          )}
-        </Map>
-      </DeckGL>
-
-      {/* Live Patrol Dispatch Floating Status HUD */}
-      {patrol && (
-        <div className="absolute bottom-5 left-5 z-20 flex items-center space-x-3 rounded-xl bg-black/85 backdrop-blur-md border border-cyan-500/50 px-4 py-2.5 font-mono text-xs text-emerald-300 shadow-[0_0_20px_rgba(0,0,0,0.8)]">
-          <div className="flex items-center space-x-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
-            <span className="font-bold text-white uppercase tracking-wider">PCR En Route</span>
-          </div>
-          <div className="h-4 w-[1px] bg-white/20" />
-          <div>
-            ETA: <span className="font-bold text-cyan-300">{Math.floor(patrol.etaSeconds / 60)}m {Math.round(patrol.etaSeconds % 60)}s</span>
-          </div>
-          <div className="h-4 w-[1px] bg-white/20" />
-          <div>
-            Remaining: <span className="font-bold text-amber-300">{(patrol.distanceRemainingMeters / 1000).toFixed(1)} km</span>
-          </div>
+      {/* Patrol ETA HUD */}
+      {dispatchActive && patrolInfo && (
+        <div className="absolute bottom-4 left-4 z-[1000] rounded-xl bg-black/90 border border-emerald-500/50 px-4 py-2.5 font-mono text-xs text-emerald-300 shadow-2xl flex items-center space-x-3">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>
+            Patrol Speed {patrolInfo.speedKmh} km/h · {(patrolInfo.distanceRemainingMeters / 1000).toFixed(2)} km remaining · ETA{" "}
+            {Math.round(patrolInfo.etaSeconds / 60)}m {Math.round(patrolInfo.etaSeconds % 60)}s
+          </span>
         </div>
       )}
     </div>

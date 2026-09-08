@@ -14,6 +14,8 @@ from backend.schemas import (
     BankFrictionResponse
 )
 from backend.services.interdiction_service import evaluate_interdiction_feasibility
+from backend.services.hardware_bridge import get_hardware_beacon_manager
+from backend.services.vision_emulator import get_vision_emulator
 from backend.websocket import broadcast_alert
 
 logger = logging.getLogger("aegis.interventions")
@@ -129,6 +131,24 @@ async def trigger_bank_friction(payload: BankFrictionRequest) -> Dict[str, Any]:
         "kiosk_public_availability": "ACTIVE_FOR_PUBLIC",
         "penal_code_sections": result["penal_code_sections"]
     })
+
+    # Trigger Hardware-In-The-Loop (HITL) physical ATM Lock Beacon
+    try:
+        await get_hardware_beacon_manager().broadcast_lock_event(
+            terminal_id="ATM-DL-9082",
+            account=payload.target_mule_account,
+            statutory_order="SECTION_106_BNSS",
+            strobe_ms=15000,
+            buzzer_freq=2400
+        )
+    except Exception as e:
+        logger.warning(f"[!] Failed to push to physical hardware beacon: {e}")
+
+    # Synchronize Edge CCTV Vision Emulator
+    try:
+        get_vision_emulator().set_card_frozen("ATM-DL-9082", True)
+    except Exception as e:
+        logger.warning(f"[!] Failed to synchronize vision emulator: {e}")
 
     return result
 

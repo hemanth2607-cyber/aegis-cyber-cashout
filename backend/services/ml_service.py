@@ -121,7 +121,9 @@ class MLService:
             "primary_target_cell": primary_cell,
             "top_3_spatial_clusters": raw_pred.get("top_3_spatial_clusters", []),
             "tactical_advisory": raw_pred.get("tactical_advisory", ""),
-            "inference_latency_ms": raw_pred.get("inference_latency_ms", 5.0)
+            "inference_latency_ms": raw_pred.get("inference_latency_ms", 5.0),
+            "sleeper_mule_alert": raw_pred.get("sleeper_mule_alert", False),
+            "sleeper_details": raw_pred.get("sleeper_details", None)
         }
 
         # Cache in memory

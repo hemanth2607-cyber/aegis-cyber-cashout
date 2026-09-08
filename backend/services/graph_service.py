@@ -89,13 +89,32 @@ class GraphService:
         amount: float,
         timestamp: Any,
         channel: str = "IMPS",
-        complaint_id: Optional[str] = None
+        complaint_id: Optional[str] = None,
+        sender_dormant_days: Optional[int] = 0,
+        receiver_dormant_days: Optional[int] = 0,
+        receiver_historical_median_vol: Optional[float] = 500.0
     ) -> List[str]:
         """
         Appends transaction to graph, updates account-complaint mapping,
         and records mule coordinate estimation. Returns affected complaint IDs.
         """
         ts_sec = float(timestamp) if isinstance(timestamp, (int, float)) else time.time()
+
+        # Register dormancy and median volume profiles if provided
+        if receiver_dormant_days is not None or receiver_historical_median_vol is not None:
+            self.graph_engine.register_account_profile(
+                account_no=receiver,
+                dormant_days=int(receiver_dormant_days or 0),
+                historical_median_volume=float(receiver_historical_median_vol if receiver_historical_median_vol is not None else 500.0)
+            )
+
+        if sender_dormant_days and sender_dormant_days > 0:
+            self.graph_engine.register_account_profile(
+                account_no=sender,
+                dormant_days=int(sender_dormant_days),
+                historical_median_volume=500.0
+            )
+
         self.graph_engine.add_transaction(utr, sender, receiver, amount, ts_sec, channel)
 
         # Identify linked complaints
@@ -158,10 +177,29 @@ class GraphService:
                 "peeling_ratio": 0.25,
                 "velocity_decay": 0.70,
                 "cumulative_latency_sec": 120.0,
-                "terminating_mules": [v_acc] if v_acc else []
+                "terminating_mules": [v_acc] if v_acc else [],
+                "sleeper_mules_detected": [],
+                "max_burst_score": 0.0,
+                "is_flagged_sleeper": False,
+                "sleeper_details": None
             }
 
         trajectory: PathVelocityMetrics = self.graph_engine.extract_mule_trajectory(v_acc, max_depth=5)
+
+        is_flagged_sleeper = len(trajectory.sleeper_mules_detected) > 0
+        sleeper_details = None
+        if is_flagged_sleeper:
+            flagged_acc = trajectory.sleeper_mules_detected[0]
+            prof = self.graph_engine.account_history.get(flagged_acc, {})
+            dorm_days = int(prof.get("dormant_days", 180))
+            burst_sc = round(trajectory.max_burst_score, 2)
+            sleeper_details = {
+                "account_no": flagged_acc,
+                "dormancy_days": dorm_days,
+                "dormant_days": dorm_days,
+                "burst_score": burst_sc,
+                "sleeper_risk_boost": 0.35
+            }
 
         return {
             "initial_amount": init_amt,
@@ -170,7 +208,11 @@ class GraphService:
             "peeling_ratio": round(trajectory.peeling_ratio, 3),
             "velocity_decay": round(trajectory.velocity_decay, 4),
             "cumulative_latency_sec": round(trajectory.cumulative_latency_sec, 1),
-            "terminating_mules": trajectory.terminating_mules
+            "terminating_mules": trajectory.terminating_mules,
+            "sleeper_mules_detected": trajectory.sleeper_mules_detected,
+            "max_burst_score": round(trajectory.max_burst_score, 2),
+            "is_flagged_sleeper": is_flagged_sleeper,
+            "sleeper_details": sleeper_details
         }
 
     def get_last_mule_location(self, complaint_id: str) -> Tuple[float, float]:

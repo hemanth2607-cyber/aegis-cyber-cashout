@@ -65,6 +65,50 @@ class PredictiveInferencePipeline:
         predicted_minutes = float(self.stage1_regressor.predict(s1_vector)[0])
         predicted_minutes = max(5.0, min(180.0, predicted_minutes))  # Realistic bounds
 
+        # Zero-Day Sleeper Mule Acceleration Check
+        is_sleeper_active = False
+        sleeper_details = graph_features.get("sleeper_details")
+        sleeper_mules = graph_features.get("sleeper_mules_detected", [])
+
+        if graph_features.get("is_flagged_sleeper"):
+            is_sleeper_active = True
+        elif sleeper_mules and len(sleeper_mules) > 0:
+            is_sleeper_active = True
+        elif isinstance(sleeper_details, dict) and sleeper_details.get("account_no"):
+            is_sleeper_active = True
+        elif any(isinstance(m, dict) and m.get("is_flagged_sleeper") for m in graph_features.get("terminating_mules", [])):
+            is_sleeper_active = True
+
+        tactical_alert_str = ""
+        sleeper_details_payload = None
+
+        if is_sleeper_active:
+            sleeper_risk_boost = float(sleeper_details.get("sleeper_risk_boost", 0.35)) if isinstance(sleeper_details, dict) else 0.35
+            # Compress cashout horizon by sleeper_risk_boost; bounded to >= 5.0 mins
+            predicted_minutes = max(5.0, predicted_minutes * (1.0 - sleeper_risk_boost))
+
+            if isinstance(sleeper_details, dict):
+                account_x = sleeper_details.get("account_no", sleeper_mules[0] if sleeper_mules else "UNKNOWN")
+                dormancy_days = sleeper_details.get("dormancy_days", sleeper_details.get("dormant_days", 180))
+                burst_score = sleeper_details.get("burst_score", graph_features.get("max_burst_score", 15.0))
+            else:
+                account_x = sleeper_mules[0] if sleeper_mules else (graph_features.get("terminating_mules", ["UNKNOWN"])[0] if graph_features.get("terminating_mules") else "UNKNOWN")
+                dormancy_days = graph_features.get("dormancy_days", graph_features.get("dormant_days", 180))
+                burst_score = graph_features.get("max_burst_score", 15.0)
+
+            tactical_alert_str = (
+                f"[CRITICAL] ZERO-DAY SLEEPER ACTIVATION DETECTED on Account {account_x} "
+                f"(Dormancy: {dormancy_days} days, Burst Index: {burst_score}x). "
+                f"Cashout horizon compressed by 35%."
+            )
+            sleeper_details_payload = {
+                "account_no": account_x,
+                "dormancy_days": dormancy_days,
+                "burst_score": burst_score,
+                "sleeper_risk_boost": sleeper_risk_boost,
+                "alert_message": tactical_alert_str
+            }
+
         # -------------------------------------------------------------
         # STAGE 2: Spatial Reachability Isochrone & Cell Ranking
         # -------------------------------------------------------------
@@ -119,6 +163,12 @@ class PredictiveInferencePipeline:
 
         total_latency_ms = (time.perf_counter() - start_time) * 1000.0
 
+        base_advisory = (
+            f"INTERCEPT ALERT: High probability cash extraction in {round(predicted_minutes, 0)} mins "
+            f"at H3 cell {top_h3_cells[0]['h3_res8']}. Recommended Action: Geofence beat dispatch."
+        )
+        tactical_advisory = f"{tactical_alert_str} {base_advisory}" if is_sleeper_active else base_advisory
+
         return {
             "complaint_id": complaint_id,
             "inference_latency_ms": round(total_latency_ms, 2),
@@ -126,8 +176,7 @@ class PredictiveInferencePipeline:
             "confidence_score": round(float(probabilities[top_indices[0]]), 3),
             "primary_target_cell": top_h3_cells[0],
             "top_3_spatial_clusters": top_h3_cells,
-            "tactical_advisory": (
-                f"INTERCEPT ALERT: High probability cash extraction in {round(predicted_minutes, 0)} mins "
-                f"at H3 cell {top_h3_cells[0]['h3_res8']}. Recommended Action: Geofence beat dispatch."
-            )
+            "tactical_advisory": tactical_advisory,
+            "sleeper_mule_alert": is_sleeper_active,
+            "sleeper_details": sleeper_details_payload if is_sleeper_active else None
         }

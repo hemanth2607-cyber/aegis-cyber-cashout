@@ -49,6 +49,6 @@ yarn-error.log*
 .env
 .env*.local
 
-# Binaries
+# Binaries & Scratch
 scripts/bin/
-
+scratch/

@@ -36,6 +36,9 @@ class TransactionHookRequest(BaseModel):
         default_factory=lambda: time.time(),
         description="Timestamp of transaction execution"
     )
+    sender_dormant_days: Optional[int] = Field(default=0, description="Sender account dormancy duration in days")
+    receiver_dormant_days: Optional[int] = Field(default=0, description="Receiver account dormancy duration in days")
+    receiver_historical_median_vol: Optional[float] = Field(default=500.0, description="Historical median daily volume of receiver")
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
@@ -93,6 +96,8 @@ class PredictionResponse(BaseModel):
     effective_window_mins: Optional[float] = None
     patrol_eta_mins: Optional[float] = None
     time_margin_mins: Optional[float] = None
+    sleeper_mule_alert: bool = False
+    sleeper_details: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(extra="allow")
 

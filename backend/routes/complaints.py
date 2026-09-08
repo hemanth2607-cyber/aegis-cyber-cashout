@@ -79,7 +79,10 @@ async def transaction_webhook(payload: TransactionHookRequest) -> Dict[str, Any]
         amount=amount,
         timestamp=ts,
         channel=channel,
-        complaint_id=payload.complaint_id
+        complaint_id=payload.complaint_id,
+        sender_dormant_days=payload.sender_dormant_days,
+        receiver_dormant_days=payload.receiver_dormant_days,
+        receiver_historical_median_vol=payload.receiver_historical_median_vol
     )
 
     logger.info(f"[+] Ingested Hop: {sender} -> {receiver} | ₹{amount} ({channel}) | UTR: {utr}")
@@ -89,6 +92,16 @@ async def transaction_webhook(payload: TransactionHookRequest) -> Dict[str, Any]
     for cid in affected_complaints:
         pred = ml_svc.run_prediction_for_complaint(cid)
         updated_predictions.append(pred)
+
+        # Check if sleeper mule anomaly was triggered and broadcast
+        if pred.get("sleeper_mule_alert"):
+            await broadcast_alert("ZERO_DAY_SLEEPER_ALERT", {
+                "complaint_id": cid,
+                "utr": utr,
+                "receiver": receiver,
+                "sleeper_details": pred.get("sleeper_details"),
+                "advisory": pred.get("tactical_advisory")
+            })
 
         # Broadcast update to tactical dashboard
         await broadcast_alert("GRAPH_VELOCITY_UPDATE", {

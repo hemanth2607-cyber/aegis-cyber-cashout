@@ -1037,8 +1037,28 @@ Aegis features a dedicated interactive simulation console accessible at `http://
 
 ---
 
-## 11. Contributors & License
+## 11. 100% Free Deployment Options ($0 Cost • Zero Credit Cards)
+
+Aegis is completely deployable to the public internet with **$0 cloud expenditure** and **zero credit cards required**:
+
+### Option 1: Permanent Cloud Hosting (Vercel + Render)
+* **Frontend**: Deploy on [Vercel](https://vercel.com) by connecting this GitHub repo and setting root directory to `frontend`. Generates a free HTTPS URL (e.g. `https://aegis-cyber-cashout.vercel.app`) in 60 seconds.
+* **Backend**: Deploy on [Render](https://render.com) using the included [`render.yaml`](file:///c:/Users/heman/Desktop/Projects/pervekkala/render.yaml) Blueprint (Free Python 3.11 Web Service).
+* See [`deploy/FREE_DEPLOYMENT_GUIDE.md`](file:///c:/Users/heman/Desktop/Projects/pervekkala/deploy/FREE_DEPLOYMENT_GUIDE.md) for step-by-step instructions.
+
+### Option 2: Instant Public Tunnel (Cloudflare Quick Tunnels)
+Run directly from your local machine to share a live public HTTPS URL with judges in 5 seconds without creating any accounts:
+```bash
+python scripts/start_free_tunnel.py
+# Or on Windows, double-click: scripts/start_free_tunnel.bat
+```
+Generates a secure live link (e.g. `https://xxxx.trycloudflare.com/simulation`) accessible from any mobile or desktop device worldwide.
+
+---
+
+## 12. Contributors & License
 
 Developed with ❤️ for the **Smart India Hackathon 2024** by **Team Aegis**.  
 Licensed under the **Apache License 2.0**.
+
 

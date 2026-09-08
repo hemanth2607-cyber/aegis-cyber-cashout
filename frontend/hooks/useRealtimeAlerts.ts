@@ -3,7 +3,19 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export function useRealtimeAlerts(url = "ws://localhost:8000/ws/alerts") {
+export function useRealtimeAlerts(customUrl?: string) {
+  const getWsUrl = () => {
+    if (customUrl) return customUrl;
+    if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
+    if (typeof window !== "undefined") {
+      const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const port = window.location.port === "3000" ? ":8000" : "";
+      return `${proto}//${window.location.hostname}${port}/ws/alerts`;
+    }
+    return "ws://localhost:8000/ws/alerts";
+  };
+
+  const url = getWsUrl();
   const [lastMessage, setLastMessage] = useState<any>(null);
   const [connected, setConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);

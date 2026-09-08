@@ -1,0 +1,43 @@
+# render.yaml - Render.com 100% Free Blueprint Specification
+# Smart India Hackathon (SIH26184) // Aegis-Cyber
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Aegis FastAPI Python Backend (100% Free Web Service)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: aegis-backend
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
+    startCommand: "python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: HOST
+        value: "0.0.0.0"
+
+  # ----------------------------------------------------------------------------
+  # 2. Aegis Next.js Frontend Console (100% Free Web Service)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: aegis-frontend
+    env: node
+    rootDir: frontend
+    region: singapore
+    plan: free
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm run start -- -p $PORT"
+    envVars:
+      - key: NODE_VERSION
+        value: 20.12.0
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: aegis-backend
+          property: host

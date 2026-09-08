@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ShieldCheck, Car, Clock, Zap, FileText } from "lucide-react";
+import { ShieldCheck, Car, Clock, Zap, FileText, Camera } from "lucide-react";
+import KioskSurveillanceHUD from "./KioskSurveillanceHUD";
 
 export interface ActionPanelProps {
   naturalWindowMin: number;      // Δt̂
@@ -10,6 +11,7 @@ export interface ActionPanelProps {
   alertId: string;
   targetH3?: string;
   targetMuleAccount?: string;
+  terminalId?: string;
   onDispatchSuccess?: (details: any) => void;
   onFrictionSuccess?: (details: any) => void;
 }
@@ -20,6 +22,7 @@ export default function ActionPanel({
   alertId = "NCR-2026-08832",
   targetH3 = "886196a52ffffff",
   targetMuleAccount = "YESB00010921",
+  terminalId = "ATM-DL-9082",
   onDispatchSuccess,
   onFrictionSuccess,
 }: ActionPanelProps) {
@@ -29,6 +32,7 @@ export default function ActionPanel({
   const [loadingCAD, setLoadingCAD] = useState(false);
   const [loadingFriction, setLoadingFriction] = useState(false);
   const [downloadingDocket, setDownloadingDocket] = useState(false);
+  const [surveillanceOpen, setSurveillanceOpen] = useState(false);
 
   // Synchronize countdown when naturalWindowMin changes
   useEffect(() => {
@@ -229,6 +233,23 @@ export default function ActionPanel({
             : "⚖ EXPORT BNSS COURT DOCKET (PDF)"}
         </span>
       </button>
+
+      {/* Button 4: View Live Kiosk CCTV Feed */}
+      <button
+        onClick={() => setSurveillanceOpen(true)}
+        className="w-full rounded-xl py-3 px-4 text-xs font-bold tracking-wider transition-all flex items-center justify-center space-x-2 shadow-lg bg-teal-950/80 hover:bg-teal-900/90 active:scale-[0.98] text-teal-300 border border-teal-500/40 shadow-[0_0_20px_rgba(20,184,166,0.25)] hover:border-teal-400"
+      >
+        <Camera className="w-4 h-4 text-teal-400 animate-pulse" />
+        <span>🎥 VIEW LIVE KIOSK CCTV FEED</span>
+      </button>
+
+      {/* Modal: Live Kiosk Surveillance HUD */}
+      <KioskSurveillanceHUD
+        terminalId={terminalId}
+        isOpen={surveillanceOpen}
+        onClose={() => setSurveillanceOpen(false)}
+        isSec106Frozen={cardLocked}
+      />
 
       {/* Statutory & Kiosk Assurance Pill */}
       <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-[10px] text-slate-400 leading-relaxed space-y-1">

@@ -15,6 +15,7 @@ from backend.routes.complaints import router as complaints_router
 from backend.routes.predictions import router as predictions_router
 from backend.routes.interventions import router as interventions_router
 from backend.routes.docket import router as docket_router
+from backend.routes.surveillance import router as surveillance_router
 from backend.websocket import ws_router
 
 # Configure Structured Logging
@@ -85,6 +86,7 @@ app.include_router(complaints_router, prefix="/api/v1")
 app.include_router(predictions_router, prefix="/api/v1")
 app.include_router(interventions_router, prefix="/api/v1")
 app.include_router(docket_router, prefix="/api/v1")
+app.include_router(surveillance_router, prefix="/api/v1")
 app.include_router(ws_router)
 
 

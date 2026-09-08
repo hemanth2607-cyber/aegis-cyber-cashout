@@ -87,7 +87,7 @@ export default function SimulationPage() {
       >
         {(state.viewMode === "map" || state.viewMode === "split") && (
           <div className="h-full w-full relative min-h-[300px]">
-            <TacticalJourneyMap state={state} />
+            <TacticalJourneyMap state={state} dispatch={dispatch} />
           </div>
         )}
         {(state.viewMode === "inspector" || state.viewMode === "split") && (

@@ -31,27 +31,27 @@ const DEFAULT_ORIGIN = {
 };
 
 const DEFAULT_PCR_BASE = {
-  lat: 15.5449,
-  lng: 73.7517,
+  lat: 15.5408,
+  lng: 73.7645, // Calangute Police Station (Beat 3)
 };
 
 const DEFAULT_SUSPECT_ATM = {
-  lat: 15.5212,
-  lng: 73.7699,
+  lat: 15.5439,
+  lng: 73.7553, // SBI Calangute Market Kiosk Terminal #042
   frozen: false,
   name: "SBI Calangute Market Kiosk (ATM-GOA-042)",
 };
 
 const DEFAULT_HOTSPOTS = [
-  "886196a52ffffff", // Calangute coastal hub
+  "886196a52ffffff", // Calangute Market Hub (Target H3 Res 8)
   "886196a50ffffff", // Candolim transit strip
   "886196a56ffffff", // Baga corridor
 ];
 
 const DEFAULT_FUND_FLOW: FundHop[] = [
-  { from: [80.2707, 13.0827], to: [73.8567, 18.5204], hop: 1 }, // Chennai -> Pune
-  { from: [73.8567, 18.5204], to: [73.8180, 15.2993], hop: 2 }, // Pune -> Margao
-  { from: [73.8180, 15.2993], to: [73.7699, 15.5212], hop: 3 }, // Margao -> Calangute
+  { from: [80.2707, 13.0827], to: [73.8446, 18.5314], hop: 1 }, // Chennai Anna Salai -> Pune Shivaji Nagar PNB
+  { from: [73.8446, 18.5314], to: [73.9582, 15.2736], hop: 2 }, // Pune -> Margao Municipal Market ICICI
+  { from: [73.9582, 15.2736], to: [73.7553, 15.5439], hop: 3 }, // Margao -> SBI Calangute Market Kiosk
 ];
 
 const DEFAULT_TELEMETRY: Telemetry = {
@@ -71,7 +71,7 @@ const DEFAULT_TELEMETRY: Telemetry = {
     fromCity: "Chennai (Tamil Nadu)",
     toCity: "North Goa (Calangute)",
     sourceSignal: "cell",
-    sensorCoordinates: [15.5212, 73.7699],
+    sensorCoordinates: [15.5439, 73.7553],
   },
   mlInference: {
     cashoutWindowMin: 22.4,

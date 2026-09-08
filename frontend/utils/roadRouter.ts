@@ -12,18 +12,16 @@ export interface RouteResult {
 
 const OSRM_BASE = "https://router.project-osrm.org/route/v1/driving";
 
-// Default realistic digitized road waypoints for fallback
+// High-precision digitized road waypoints connecting Calangute Police Station (Beat 3) to SBI Calangute Market Kiosk
 const FALLBACK_WAYPOINTS: LatLng[] = [
-  { lat: 15.5449, lng: 73.7517 }, // PCR Base station (Goa Coastal Police Beat)
-  { lat: 15.5421, lng: 73.7534 }, // Chogm Road intersection
-  { lat: 15.5390, lng: 73.7551 }, // Calangute-Mapusa Highway junction
-  { lat: 15.5352, lng: 73.7578 }, // Naika Vaddo market road
-  { lat: 15.5321, lng: 73.7602 }, // St. Anthony Chapel junction
-  { lat: 15.5298, lng: 73.7625 }, // Calangute Post Office lane
-  { lat: 15.5273, lng: 73.7648 }, // Tito's Lane approach artery
-  { lat: 15.5245, lng: 73.7672 }, // Umtav Vaddo commercial strip
-  { lat: 15.5212, lng: 73.7699 }, // Target ATM, Calangute Market Center
+  { lat: 15.5408, lng: 73.7645 }, // Calangute Police Station (Beat-3 Headquarters)
+  { lat: 15.5412, lng: 73.7622 }, // Naikawaddo Chogm Road Junction
+  { lat: 15.5420, lng: 73.7598 }, // Calangute Main Road & Post Office Junction
+  { lat: 15.5428, lng: 73.7575 }, // Calangute Market Road Approach
+  { lat: 15.5435, lng: 73.7562 }, // Commercial Kiosk Strip
+  { lat: 15.5439, lng: 73.7553 }, // Target ATM: SBI Calangute Market Kiosk #042
 ];
+
 
 export async function fetchRoadRoute(
   origin: LatLng,

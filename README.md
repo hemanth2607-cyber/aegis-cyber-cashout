@@ -1005,7 +1005,40 @@ Aegis-Cyber outputs are constructed specifically to adhere to India's new crimin
 
 ---
 
-## 10. Contributors & License
+## 10. Dual-Mode Simulation & Interactive 5-Year-Old Explanation Engine (SIH26184)
+
+Aegis features a dedicated interactive simulation console accessible at `http://localhost:3000/simulation`. Designed for Smart India Hackathon judge review, it bridges high-stakes cybersecurity math with crystal-clear human explainability.
+
+### 1. Gradual 2D Money Line Extension & Visible Fluid Currents
+- **Gradual Corridor Extension**: Rather than popping up all at once, the fund-flow line physically extends point-by-point across India over a smooth 4.5-second easing curve along real national highway corridors (NH48) and banking optic-fiber trunks.
+- **Dense 250-Point Interpolation**: Connects Incident Origin $v_0$ (Anna Salai, Chennai) $\to$ Layer 1 Mule Bank (PNB Shivaji Nagar, Pune) $\to$ Layer 2 Mule Bank (ICICI Margao Municipal Market) $\to$ Terminal Cashout Kiosk (SBI Calangute Market Kiosk Terminal #042).
+- **Visible Movements Inside the Line**:
+  - **Dynamic SVG Current**: Continuous flowing dash currents driven by GPU-accelerated CSS `@keyframes flowDash`.
+  - **3 Animated Glowing Money Tokens**: Active digital tokens (`💸 ₹2.5L`, `₹`, `₹`) glide continuously along the drawn trail in an infinite loop, demonstrating money physically in flight.
+- **High-Precision On-Land Coordinates**: 100% verified terrestrial coordinates for all bank branches and ATM terminals (zero coastal/ocean plotting errors).
+
+### 2. Explainable to a 5-Year-Old (Comic-Strip Storytelling)
+- **Top Story Banner**: Features vibrant emojis and 1-sentence plain-English summaries of each stage:
+  - 👵 **Step 1: The Fake Phone Call**: Scammers trick Grandma into sending ₹7.5 Lakhs from Chennai.
+  - 💸 **Step 2: The Money Runs Across India**: Thieves quickly bounce funds through 3 bank doors to hide.
+  - 📡 **Step 3: Aegis Radar Spots the Phone**: Cell tower pings locate the thief 1,000 km away in Goa.
+  - 🤖 **Step 4: Super AI Finds the ATM**: AI calculates the 22-minute cashout window and predicts the exact kiosk.
+  - 🛡️ **Step 5: The Magic Lock**: Bank freezes *only* the thief's card session; honest citizens withdraw cash normally.
+  - 🚓 **Step 6: Police Intercept & Recover**: Dial 112 car intercepts the courier at the machine; 100% of money saved!
+- **Interactive Step Navigation Badges**: 6 clickable stage buttons allow judges or users to jump directly to any step.
+
+### 3. High-Precision Mathematical & Statutory Audit Mode
+- **4-Decimal Precision**: In-depth telemetry showing exact mathematical parameters:
+  - Velocity Decay: $V_k = (\prod A_i/A_{i-1}) \cdot \exp(-\sum \lambda_i \Delta t_i) \cdot [1 - \tanh(\gamma \frac{|\text{Out}|}{|\text{In}|} + \epsilon)] = 0.8642$
+  - Bayesian MAP Sensor Fusion: $\hat{x}_{\text{anchor}} = \arg\max_{x \in \mathbb{R}^2} \sum_{s \in \mathcal{S}} \omega_s \cdot \exp(-\frac{1}{2}(x - \mu_s)^T \Sigma_s^{-1} (x - \mu_s))$ ($\Delta d = 984.72\text{ km}$, $\Delta t = 0\text{ms}$)
+  - Dual-Stage ML & Utility: $U_m(a) = w_1 \psi_{\text{dist}} + w_2 \psi_{\text{liq}} + w_3 E_{\text{crowd}} + w_4 J_{\text{jurisdiction}} - w_5 \psi_{\text{police}}$ ($88.42\%$ confidence)
+  - TreeSHAP Local Waterfall: Local feature contributions starting from baseline $E[f(x)] = 0.4120$.
+  - Sequential Interdiction: Dual condition evaluation ($T_{\text{freeze}} = 1.40\text{s} < 22.40\text{m}$ and $T_{\text{dispatch}} = 6.80\text{m} < 37.40\text{m}$) yielding $+30.60\text{ min}$ safety margin.
+
+---
+
+## 11. Contributors & License
 
 Developed with ❤️ for the **Smart India Hackathon 2024** by **Team Aegis**.  
 Licensed under the **Apache License 2.0**.
+

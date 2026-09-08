@@ -466,4 +466,36 @@ Execute this standard operational demonstration sequence during tactical present
 
 ---
 
+## 8. Dual-Mode Simulation Guide (5-Year-Old Story + High-Precision SIH Math)
+
+Access the dedicated simulation console at `http://localhost:3000/simulation` or click the **⚡ Dual-Mode Simulation** button on the main dashboard header.
+
+### 1. Visual Storytelling & Gradual 2D Line Extension
+- **Gradual Money Trail**: When you play or navigate to Stage 2, the cyan line does *not* appear abruptly; it smoothly extends from Chennai across the Golden Quadrilateral (NH48) through Pune and Margao to Calangute over 4.5 seconds.
+- **Visible Currents & Flying Money**:
+  - Continuous animated dashed currents stream along the line.
+  - 3 animated glowing gold tokens (`💸 ₹2.5L`, `₹`, `₹`) physically glide along the path, illustrating real-time digital fund transfer.
+- **Milestone Pin Reveals**: The intermediate bank pins (PNB Pune at 46% and ICICI Margao at 82%) pop up with animated ripple rings only when the growing trail reaches them.
+- **"▶ Replay Money Path" Button**: Click the button on the top banner to re-watch the money line extend from scratch anytime.
+
+### 2. 5-Year-Old Explanation Mode (Comic-Strip Story)
+In the top banner and the right inspector panel, each stage is translated into an intuitive, everyday human story:
+1. **👵 Step 1: The Fake Phone Call**: A scammer tricks Grandma in Chennai into sending ₹7.5 Lakhs.
+2. **💸 Step 2: The Money Runs**: The thieves quickly bounce funds through 3 bank doors (Chennai ➔ Pune ➔ Margao) to hide.
+3. **📡 Step 3: Aegis Radar**: Aegis spots the thief's phone ping 1,000 km away in Calangute, Goa.
+4. **🤖 Step 4: Super AI Finds the ATM**: AI calculates the thief's 22-minute window and identifies the SBI Calangute Market Kiosk.
+5. **🛡️ Step 5: The Magic Lock**: The bank locks *only* the thief's card session using Section 106 BNSS; regular citizens continue using the ATM normally.
+6. **🚓 Step 6: Police Catch the Thief**: Dial 112 police car arrives in 3 minutes, captures the courier red-handed, and restores 100% of the funds!
+
+### 3. High-Precision Mathematical Audit Mode
+Switch to `🔬 SIH Math` to audit full 4-decimal scientific telemetry:
+- **Velocity Decay**: $V_k = 0.8642$ (Layer ratio product $0.9420$, temporal factor $\exp(-0.3850) = 0.6805$, variance $\sigma = 0.1200$).
+- **Bayesian MAP Sensor Fusion**: Centroid migration of $984.72\text{ km}$ from Chennai $(13.0827^\circ\text{N}, 80.2707^\circ\text{E})$ to Goa $(15.5439^\circ\text{N}, 73.7553^\circ\text{E})$ in $0\text{ms}$.
+- **Cross-Border Utility**: $U_m(a)$ evaluated across candidates; SBI Calangute Market Kiosk tops at $88.42\%$ confidence.
+- **TreeSHAP Attribution Waterfall**: Game-theoretic attribution vectors anchored to baseline $E[f(x)] = 0.4120$.
+- **Sequential Interdiction Feasibility**: Digital freeze $1.40\text{s} < 22.40\text{m}$ ($I_{\text{freeze}} = 1$); patrol dispatch $6.80\text{m} < 37.40\text{m}$ yielding $+30.60\text{ min}$ safety margin.
+
+---
+
 *Manual maintained by Project Aegis Technical Architecture Team in compliance with I4C / MHA operational specifications.*
+

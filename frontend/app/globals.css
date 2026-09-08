@@ -171,14 +171,35 @@ body {
   box-shadow: 0 0 12px rgba(245, 158, 11, 0.18);
 }
 
-/* Animated flow lines */
+/* Animated flow lines & Money stream */
 @keyframes flowDash {
   to {
-    stroke-dashoffset: -20;
+    stroke-dashoffset: -32;
   }
 }
 
 .flow-polyline {
-  stroke-dasharray: 6, 6;
+  stroke-dasharray: 8, 8;
+  animation: flowDash 0.8s linear infinite;
+}
+
+.animated-money-flow {
+  stroke-dasharray: 12, 16;
   animation: flowDash 1s linear infinite;
 }
+
+@keyframes moneyPulseRing {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.money-pulse-badge {
+  animation: moneyPulseRing 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+

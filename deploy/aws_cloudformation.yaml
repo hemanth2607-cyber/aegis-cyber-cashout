@@ -1,0 +1,186 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Aegis-Cyber Cashout Forecaster // Automated AWS Production Stack (SIH26184)"
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: "t3.medium"
+    AllowedValues:
+      - "t3.medium"
+      - "t3.large"
+      - "t3.xlarge"
+      - "c6i.large"
+    Description: "EC2 instance type (t3.medium is recommended for 2 vCPU, 4GB RAM)."
+
+  KeyName:
+    Type: "AWS::EC2::KeyPair::KeyName"
+    Description: "Name of an existing EC2 KeyPair to enable SSH access to the instance."
+    ConstraintDescription: "Must be the name of an existing EC2 KeyPair."
+
+Resources:
+  # ----------------------------------------------------------------------------
+  # 1. Virtual Private Cloud (VPC) & Networking
+  # ----------------------------------------------------------------------------
+  AegisVPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: "Aegis-Cyber-VPC"
+        - Key: Project
+          Value: "SIH26184"
+
+  AegisInternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: "Aegis-IGW"
+
+  AegisVPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref AegisVPC
+      InternetGatewayId: !Ref AegisInternetGateway
+
+  AegisPublicSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref AegisVPC
+      CidrBlock: "10.0.1.0/24"
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: "Aegis-Public-Subnet"
+
+  AegisRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref AegisVPC
+      Tags:
+        - Key: Name
+          Value: "Aegis-Public-RouteTable"
+
+  AegisDefaultRoute:
+    Type: "AWS::EC2::Route"
+    DependsOn: AegisVPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref AegisRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref AegisInternetGateway
+
+  AegisSubnetRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref AegisPublicSubnet
+      RouteTableId: !Ref AegisRouteTable
+
+  # ----------------------------------------------------------------------------
+  # 2. Security Group (Inbound Firewall)
+  # ----------------------------------------------------------------------------
+  AegisSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Security Group for Aegis-Cyber Cashout Forecaster (Ports 22, 80, 443, 3000, 8000)"
+      VpcId: !Ref AegisVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: "0.0.0.0/0"
+          Description: "SSH Remote Management"
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: "0.0.0.0/0"
+          Description: "HTTP Unified Web Access (Nginx Reverse Proxy)"
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: "0.0.0.0/0"
+          Description: "HTTPS Secure Access"
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: "0.0.0.0/0"
+          Description: "Direct Next.js Tactical Console"
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          CidrIp: "0.0.0.0/0"
+          Description: "FastAPI REST API & WebSocket Telemetry"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"
+          Description: "Allow all outbound traffic for package & container downloads"
+      Tags:
+        - Key: Name
+          Value: "Aegis-SecurityGroup"
+
+  # ----------------------------------------------------------------------------
+  # 3. EC2 Production Instance
+  # ----------------------------------------------------------------------------
+  AegisInstance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref AegisPublicSubnet
+      SecurityGroupIds:
+        - !Ref AegisSecurityGroup
+      ImageId: !Sub "{{resolve:ssm:/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id}}"
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: 30
+            VolumeType: "gp3"
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: "Aegis-Cyber-Production-Node"
+        - Key: Project
+          Value: "SIH26184"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+          echo "[+] Starting Aegis-Cyber CloudFormation Automated Provisioning..."
+          export DEBIAN_FRONTEND=noninteractive
+
+          # Install Git & Curl
+          apt-get update -y
+          apt-get install -y git curl
+
+          # Download and execute setup script
+          curl -fsSL https://raw.githubusercontent.com/hemanth2607-cyber/aegis-cyber-cashout/main/deploy/setup_aws_ec2.sh -o /tmp/setup_aws_ec2.sh
+          chmod +x /tmp/setup_aws_ec2.sh
+          bash /tmp/setup_aws_ec2.sh
+
+          echo "[+] Aegis-Cyber CloudFormation Provisioning Finished Successfully."
+
+Outputs:
+  SimulationURL:
+    Description: "Interactive 2D Dual-Mode Simulation Console (Judge Evaluation)"
+    Value: !Sub "http://${AegisInstance.PublicIp}/simulation"
+
+  DashboardURL:
+    Description: "Aegis-Cyber Tactical Command Center"
+    Value: !Sub "http://${AegisInstance.PublicIp}/dashboard"
+
+  ApiDocumentationURL:
+    Description: "FastAPI Swagger Documentation & Interactive OpenAPI"
+    Value: !Sub "http://${AegisInstance.PublicIp}:8000/docs"
+
+  PublicIPAddress:
+    Description: "Public IPv4 Address of the Aegis EC2 Instance"
+    Value: !GetAtt AegisInstance.PublicIp
+
+  SSHCommand:
+    Description: "Command to connect to the instance via SSH"
+    Value: !Sub "ssh -i ${KeyName}.pem ubuntu@${AegisInstance.PublicIp}"

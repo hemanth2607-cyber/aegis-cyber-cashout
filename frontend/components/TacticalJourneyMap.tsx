@@ -1,11 +1,11 @@
 // frontend/components/TacticalJourneyMap.tsx
 "use client";
 import React, { useMemo, useState } from "react";
-import Map, { Marker } from "react-map-gl/mapbox";
+import Map, { Marker } from "react-map-gl/maplibre";
 import DeckGL from "@deck.gl/react";
 import { ArcLayer } from "@deck.gl/layers";
 import { H3HexagonLayer } from "@deck.gl/geo-layers";
-import "mapbox-gl/dist/mapbox-gl.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { SimulationState, STAGES } from "../state/simulationTimeline";
 import { useRoadPatrol } from "../hooks/useRoadPatrol";
 
@@ -90,21 +90,18 @@ export default function TacticalJourneyMap({ state }: { state: SimulationState }
     [showHexagon]
   );
 
-  const mapStyle = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-    ? "mapbox://styles/mapbox/dark-v11"
-    : "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+  const mapStyle = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
   return (
     <div className="relative h-full w-full rounded-xl overflow-hidden border border-tactical-border/40 bg-tactical-bg shadow-2xl">
       <DeckGL
         viewState={viewState}
         onViewStateChange={(e: any) => setViewState(e.viewState)}
-        controller
+        controller={true}
         layers={[arcLayer, hexLayer]}
       >
         <Map
           mapStyle={mapStyle}
-          mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         >
           {/* Stage 1: Origin Beacon at Chennai */}
           <Marker latitude={CHENNAI.lat} longitude={CHENNAI.lng}>

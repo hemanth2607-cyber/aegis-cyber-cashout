@@ -2,11 +2,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Map, { Marker } from "react-map-gl/mapbox";
+import Map, { Marker } from "react-map-gl/maplibre";
 import DeckGL from "@deck.gl/react";
 import { ArcLayer } from "@deck.gl/layers";
 import { H3HexagonLayer } from "@deck.gl/geo-layers";
-import "mapbox-gl/dist/mapbox-gl.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { useRoadPatrol } from "../hooks/useRoadPatrol";
 
 export interface FundHop {
@@ -143,7 +143,6 @@ export default function TacticalMap({
       >
         <Map
           mapStyle={mapStyleUrl}
-          mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         >
           {/* 1. Incident Origin Marker (v0, pulsating amber) */}
           <Marker latitude={originMarker.lat} longitude={originMarker.lng} anchor="center">

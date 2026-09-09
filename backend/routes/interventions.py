@@ -16,6 +16,7 @@ from backend.schemas import (
 from backend.services.interdiction_service import evaluate_interdiction_feasibility
 from backend.services.hardware_bridge import get_hardware_beacon_manager
 from backend.services.vision_emulator import get_vision_emulator
+from backend.services.blockchain_engine import consortium_ledger
 from backend.websocket import broadcast_alert
 
 logger = logging.getLogger("aegis.interventions")
@@ -74,6 +75,21 @@ async def dispatch_dial112(payload: DispatchCADRequest) -> Dict[str, Any]:
 
     # Broadcast to dashboard
     await broadcast_alert("DIAL112_CAD_DISPATCHED", result)
+
+    # Immutably record Dial 112 Police CAD dispatch on Prahar Consortium Blockchain
+    try:
+        consortium_ledger.record_patrol_dispatch(
+            incident_id=payload.complaint_id or dispatch_id,
+            unit_callsign=assigned_unit,
+            target_coords=[28.6139, 77.2090],
+            eta_mins=eval_result.patrol_eta_mins,
+            time_margin_mins=eval_result.time_margin_mins
+        )
+        cad_block = consortium_ledger.mine_block("STATE_POLICE_CAD_GATEWAY")
+        result["blockchain_block_index"] = cad_block.block_index
+        result["blockchain_merkle_root"] = cad_block.merkle_root
+    except Exception as e:
+        logger.warning(f"[!] Blockchain ledger dispatch recording error: {e}")
 
     return result
 
@@ -149,6 +165,21 @@ async def trigger_bank_friction(payload: BankFrictionRequest) -> Dict[str, Any]:
         get_vision_emulator().set_card_frozen("ATM-DL-9082", True)
     except Exception as e:
         logger.warning(f"[!] Failed to synchronize vision emulator: {e}")
+
+    # Immutably record Section 106 BNSS Card-Session Freeze on Prahar Consortium Blockchain
+    try:
+        consortium_ledger.record_interdiction_order(
+            incident_id=payload.complaint_id or risk_ref,
+            terminal_id="ATM-DL-9082",
+            card_hash=payload.target_mule_account,
+            statutory_code="SECTION_106_BNSS",
+            friction_mode=payload.friction_mode or "ATM_MICRO_DELAY_15MIN"
+        )
+        npci_block = consortium_ledger.mine_block("NPCI_SWITCH_GATEWAY")
+        result["blockchain_block_index"] = npci_block.block_index
+        result["blockchain_merkle_root"] = npci_block.merkle_root
+    except Exception as e:
+        logger.warning(f"[!] Blockchain ledger bank friction recording error: {e}")
 
     return result
 

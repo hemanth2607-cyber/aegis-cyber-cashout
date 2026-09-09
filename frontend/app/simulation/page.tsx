@@ -42,6 +42,13 @@ export default function SimulationPage() {
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Live Console</span>
           </Link>
+          <Link
+            href="/blockchain"
+            className="p-1.5 rounded-lg border border-emerald-500/40 bg-emerald-950/40 text-emerald-300 hover:text-white hover:border-emerald-400 transition-all flex items-center space-x-1 text-xs font-bold"
+            title="Open Prahar Consortium Blockchain Explorer"
+          >
+            <span>⛓️ Blockchain Ledger</span>
+          </Link>
           <div className="flex items-center space-x-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-tactical-border to-blue-600 flex items-center justify-center border border-tactical-border">
               <Shield className="w-4 h-4 text-black" />

@@ -9,6 +9,7 @@ import AlgorithmicJourneyPanel, { Telemetry } from "../../components/Algorithmic
 import ActionPanel from "../../components/ActionPanel";
 import { useRealtimeAlerts } from "../../hooks/useRealtimeAlerts";
 import { FundHop } from "../../components/TacticalMap";
+import ConsortiumBlockExplorer from "../../components/ConsortiumBlockExplorer";
 
 // Dynamic import with SSR false for Mapbox & DeckGL canvas
 const TacticalMap = dynamic(() => import("../../components/TacticalMap"), {
@@ -117,6 +118,7 @@ export default function DashboardPage() {
   const [dispatchActive, setDispatchActive] = useState(false);
   const [alertId, setAlertId] = useState("NCR-2026-08832");
   const [isSimulating, setIsSimulating] = useState(false);
+  const [showBlockchainModal, setShowBlockchainModal] = useState(false);
 
   // Synchronize incoming WebSocket messages
   useEffect(() => {
@@ -286,6 +288,14 @@ export default function DashboardPage() {
             </span>
           </div>
 
+          {/* Blockchain Consortium Ledger Explorer Button */}
+          <button
+            onClick={() => setShowBlockchainModal(true)}
+            className="flex items-center space-x-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.35)] cursor-pointer active:scale-95"
+          >
+            <span>⛓️ Blockchain Ledger</span>
+          </button>
+
           {/* Judicial Grand Jury Mode Link */}
           <Link
             href="/simulation"
@@ -371,6 +381,16 @@ export default function DashboardPage() {
           <AlgorithmicJourneyPanel telemetry={telemetry} />
         </section>
       </main>
+
+      {/* =========================================================================
+          BLOCKCHAIN CONSORTIUM EXPLORER MODAL
+          ========================================================================= */}
+      {showBlockchainModal && (
+        <ConsortiumBlockExplorer
+          isModal={true}
+          onClose={() => setShowBlockchainModal(false)}
+        />
+      )}
     </div>
   );
 }

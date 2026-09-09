@@ -286,12 +286,12 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          {/* Dual-Mode Simulation Link */}
+          {/* Judicial Grand Jury Mode Link */}
           <Link
             href="/simulation"
-            className="hidden sm:flex items-center space-x-1.5 bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-500/40 text-cyan-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+            className="flex items-center space-x-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
           >
-            <span>⚡ Dual-Mode Simulation</span>
+            <span>⚖️ Judicial Grand Jury Mode</span>
           </Link>
 
           {/* Simulate Cyber Heist Button */}

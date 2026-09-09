@@ -48,10 +48,10 @@ export default function SimulationPage() {
             </div>
             <div>
               <span className="font-black text-xs sm:text-sm tracking-wider text-white">
-                AEGIS-CYBER <span className="text-tactical-border">{"//"} DUAL-MODE SIMULATION</span>
+                AEGIS-CYBER <span className="text-amber-400">{"//"} JUDICIAL GRAND JURY DEMONSTRATION</span>
               </span>
-              <span className="text-[10px] ml-2 text-tactical-amber hidden md:inline">
-                [SIH26184 Judge Review Mode]
+              <span className="text-[10px] ml-2 text-emerald-400 hidden md:inline font-bold">
+                [BNSS 2023 · Statutory Forensic Protocol · SIH26184]
               </span>
             </div>
           </div>

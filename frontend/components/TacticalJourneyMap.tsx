@@ -572,53 +572,53 @@ export default function TacticalJourneyMap({
     };
   }, [stageId]);
 
-  // Plain-English 5-year-old stage explanations
-  const simple5YoStories = [
+  // Official Judicial Briefing and Statutory Telemetry per Stage
+  const judicialCaseBriefings = [
     {
-      emoji: "👵",
-      title: "Step 1: The Fake Phone Call (Chennai)",
-      story: "A bad guy in disguise calls Grandma and tricks her into sending ₹7.5 Lakhs from her bank.",
+      icon: "⚖️",
+      title: "Stage 1: FIR Ingestion & Cyber Extortion Ingestion (Sec 173 BNSS)",
+      story: "High-value extortion complaint registered (₹7,50,000 siphoned under Digital Arrest coercion). Dynamic cybercrime graph initialized in-memory in 3.8ms.",
     },
     {
-      emoji: "💸",
-      title: "Step 2: The Money Runs Across India!",
-      story: "Watch the glowing cyan line! The money jumps through 3 secret bank doors (Chennai ➔ Pune ➔ Margao) to hide.",
+      icon: "🕸️",
+      title: "Stage 2: CFCFRMS Peeling Stream & Zero-Day Sleeper Mule Detection",
+      story: "Real-time transaction peeling vector across IMPS/UPI banking rails. Dormancy Burst Score of 9.42 flags sleeper mule account YESB00010921.",
     },
     {
-      emoji: "📡",
-      title: "Step 3: Aegis Radar Catches the Phone Signal!",
-      story: "The thief thought he escaped, but his phone tower ping showed up 1,000 km away in Goa!",
+      icon: "📡",
+      title: "Stage 3: Bayesian MAP Spatial Discretization & Sensory Shift",
+      story: "Cellular tower triangulation and payment gateway IP telemetry re-anchor the operational search zone 984.7 km to the Calangute corridor in North Goa.",
     },
     {
-      emoji: "🤖",
-      title: "Step 4: Super AI Finds the Exact ATM!",
-      story: "The AI brain calculates: 'Thief has 22 minutes to grab cash and is running to the SBI Calangute Market ATM!'",
+      icon: "🤖",
+      title: "Stage 4: Dual-Stage ML Cashout Horizon (LightGBM GBDT)",
+      story: "LightGBM regressor forecasts a 18.5-minute natural withdrawal window. Uber H3 Res 8 hexagonal cell isolates target SBI Calangute Kiosk in <50ms.",
     },
     {
-      emoji: "🛡️",
-      title: "Step 5: The Magic Lock (ATM Still Works for Others!)",
-      story: "Bank freezes ONLY the thief's card. Honest people can still take out cash, but the thief's card gets stuck!",
+      icon: "🛡️",
+      title: "Stage 5: Section 106 BNSS Bank Core Switch Hold (Zero Citizen Downtime)",
+      story: "Targeted friction (τ = +15 min delay) applied strictly to suspect card session. Physical kiosk remains 100% operational for honest public citizens.",
     },
     {
-      emoji: "🚓",
-      title: "Step 6: Police Catch the Thief Red-Handed!",
-      story: "Dial 112 police car zooms in and catches the thief at the ATM! 100% of the ₹7.5 Lakhs is saved!",
+      icon: "🚓",
+      title: "Stage 6: ERSS Dial 112 CAD Interception & Judicial Attachment",
+      story: "PCR Patrol BEAT-PCR-ROHINI-4 arrives with +28.3 minutes operational safety buffer. 100% principal recovered; 4-page BNSS Court Docket compiled.",
     },
   ];
 
-  const currentStory = simple5YoStories[state.currentStageIndex];
+  const currentStory = judicialCaseBriefings[state.currentStageIndex];
 
   return (
     <div className="relative h-full w-full rounded-xl overflow-hidden border border-tactical-border/40 bg-tactical-bg shadow-2xl">
       {/* 2D Leaflet Map Canvas */}
       <div ref={mapContainerRef} className="h-full w-full z-0" id="tactical-simulation-map" />
 
-      {/* TOP FLOATING STORY BOX (Explainable to a 5-Year-Old & Step Navigation) */}
+      {/* TOP FLOATING JUDICIAL BRIEFING BAR */}
       <div className="absolute top-3 left-3 right-3 z-[1000] flex flex-col gap-2 pointer-events-none">
-        {/* Main 5yo Story Banner */}
+        {/* Main Judicial Briefing Banner */}
         <div className="rounded-xl bg-black/95 border border-tactical-border/60 p-3 shadow-2xl backdrop-blur-md pointer-events-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
           <div className="flex items-center space-x-3">
-            <span className="text-2xl">{currentStory.emoji}</span>
+            <span className="text-2xl">{currentStory.icon}</span>
             <div>
               <div className="flex items-center space-x-2 text-tactical-border text-[11px] font-bold uppercase tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-tactical-border animate-ping" />
@@ -643,16 +643,23 @@ export default function TacticalJourneyMap({
             )}
             <div className="hidden sm:flex items-center space-x-1.5 rounded-lg bg-emerald-950/70 border border-emerald-500/40 px-2.5 py-1 text-[11px] font-mono text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>2D Flow Active</span>
+              <span>Spatio-Temporal Engine</span>
             </div>
           </div>
         </div>
 
-        {/* 6 Clickable Step Badges (Easy for anyone to click!) */}
+        {/* 6 Clickable Stage Badges */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pointer-events-auto">
           {STAGES.map((stg, i) => {
             const isActive = state.currentStageIndex === i;
-            const badgeIcons = ["👵 1. The Scam", "💸 2. Money Runs", "📡 3. Radar", "🤖 4. AI Predicts", "🛡️ 5. Card Lock", "🚓 6. Caught!"];
+            const badgeIcons = [
+              "⚖️ 1. FIR Ingestion",
+              "🕸️ 2. Peeling & Sleeper Burst",
+              "📡 3. Bayesian Spatial Shift",
+              "🤖 4. Dual-Stage ML Horizon",
+              "🛡️ 5. Sec 106 BNSS Hold",
+              "🚓 6. Police CAD Intercept",
+            ];
             return (
               <button
                 key={stg.id}

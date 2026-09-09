@@ -1,5 +1,5 @@
 """
-Prahar Consortium Blockchain API Routes
+Sentinel Consortium Blockchain API Routes
 Exposes permissioned PoA ledger inspection, Merkle root verification,
 tamper-attack simulation for judges, and Section 63 BSA 2023 evidence certification.
 """
@@ -12,7 +12,7 @@ from backend.services.blockchain_engine import (
     CONSORTIUM_NODES
 )
 
-router = APIRouter(prefix="/blockchain", tags=["Prahar Consortium Blockchain"])
+router = APIRouter(prefix="/blockchain", tags=["Sentinel Consortium Blockchain"])
 
 
 class TamperDemoRequest(BaseModel):
@@ -25,11 +25,11 @@ class TamperDemoRequest(BaseModel):
 async def get_consortium_ledger() -> Dict[str, Any]:
     """
     Returns the complete immutable ledger history, active consortium nodes,
-    and current mining state for the Prahar-Ledger.
+    and current mining state for the Sentinel-Ledger.
     """
     blocks = [b.to_dict() for b in consortium_ledger.chain]
     return {
-        "chain_id": "PRAHAR-CONSORTIUM-MAINNET-2026",
+        "chain_id": "SENTINEL-CONSORTIUM-MAINNET-2026",
         "consensus": "Proof-of-Authority (PoA)",
         "total_blocks": len(blocks),
         "active_validators": [

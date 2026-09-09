@@ -1,5 +1,5 @@
 """
-Prahar-Ledger: High-Performance Permissioned Consortium Blockchain
+Sentinel-Ledger: High-Performance Permissioned Consortium Blockchain
 SIH26184 Proof-of-Authority (PoA) Architecture for Cybercrime Evidence Integrity.
 
 Features:
@@ -99,7 +99,7 @@ def build_merkle_root(transactions: List[Dict[str, Any]]) -> str:
 # ==============================================================================
 # 3. BLOCK DEFINITION & SCHEMA
 # ==============================================================================
-class PraharBlock:
+class SentinelBlock:
     def __init__(
         self,
         block_index: int,
@@ -147,12 +147,16 @@ class PraharBlock:
         return hashlib.sha256(header_str.encode("utf-8")).hexdigest()
 
 
+# Backward compatibility alias
+PraharBlock = SentinelBlock
+
+
 # ==============================================================================
-# 4. PRAHAR CONSORTIUM CHAIN
+# 4. SENTINEL CONSORTIUM CHAIN
 # ==============================================================================
-class PraharConsortiumChain:
+class SentinelConsortiumChain:
     def __init__(self):
-        self.chain: List[PraharBlock] = []
+        self.chain: List[SentinelBlock] = []
         self.pending_transactions: List[Dict[str, Any]] = []
         self._genesis_created = False
         self.create_genesis_block()
@@ -164,7 +168,7 @@ class PraharConsortiumChain:
 
         genesis_tx = [
             {
-                "event_type": "PRAHAR_GENESIS_INITIALIZATION",
+                "event_type": "SENTINEL_GENESIS_INITIALIZATION",
                 "authority": "Ministry of Home Affairs / I4C",
                 "framework": "Section 63 Bharatiya Sakshya Adhiniyam, 2023",
                 "consensus_engine": "Permissioned Proof-of-Authority (PoA)",
@@ -178,10 +182,10 @@ class PraharConsortiumChain:
         prev_hash = "0" * 64
         validator = "I4C_CENTRAL_ORACLE"
 
-        header_hash = PraharBlock.calculate_header_hash(0, timestamp, merkle_root, prev_hash, validator)
+        header_hash = SentinelBlock.calculate_header_hash(0, timestamp, merkle_root, prev_hash, validator)
         signature = sign_payload(header_hash.encode("utf-8"), CONSORTIUM_NODES[validator]["private_key"])
 
-        genesis_block = PraharBlock(
+        genesis_block = SentinelBlock(
             block_index=0,
             timestamp=timestamp,
             transactions=genesis_tx,
@@ -562,7 +566,7 @@ class PraharConsortiumChain:
                 for k, v in CONSORTIUM_NODES.items()
             ],
             "legal_declaration": (
-                "It is certified that the electronic records contained in Prahar Consortium Ledger were "
+                "It is certified that the electronic records contained in Sentinel Consortium Ledger were "
                 "produced by computer systems in regular lawful operation by the consortium authorities (I4C, NPCI, Police). "
                 "The hash chain and cryptographic Merkle roots have remained unbroken, verifying zero electronic tampering."
             ),
@@ -570,7 +574,10 @@ class PraharConsortiumChain:
 
 
 # Global Singleton Instance
-consortium_ledger = PraharConsortiumChain()
+consortium_ledger = SentinelConsortiumChain()
+
+# Backward compatibility alias
+PraharConsortiumChain = SentinelConsortiumChain
 
 # Pre-populate default benchmark blocks so the explorer is instantly populated
 consortium_ledger.restore_ledger()

@@ -246,7 +246,7 @@ export const ConsortiumBlockExplorer: React.FC<ConsortiumBlockExplorerProps> = (
             <div>
               <div className="flex items-center space-x-2.5">
                 <h1 className="text-lg font-black tracking-wider text-white">
-                  PRAHAR-LEDGER <span className="text-cyan-400">// POA CONSORTIUM</span>
+                  SENTINEL-LEDGER <span className="text-cyan-400">// POA CONSORTIUM</span>
                 </h1>
                 <span
                   className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border ${
@@ -371,7 +371,7 @@ export const ConsortiumBlockExplorer: React.FC<ConsortiumBlockExplorerProps> = (
           {loading ? (
             <div className="py-20 flex flex-col items-center justify-center space-y-3">
               <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin" />
-              <span className="text-xs text-slate-400">Loading Prahar Consortium Ledger...</span>
+              <span className="text-xs text-slate-400">Loading Sentinel Consortium Ledger...</span>
             </div>
           ) : (
             <div className="space-y-4">
@@ -624,7 +624,7 @@ export const ConsortiumBlockExplorer: React.FC<ConsortiumBlockExplorerProps> = (
 
               <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
                 <span className="text-[10px] text-slate-500">
-                  Digitally sealed by Prahar PoA Engine (SHA-256 HMAC)
+                  Digitally sealed by Sentinel PoA Engine (SHA-256 HMAC)
                 </span>
                 <button
                   onClick={() => setCertificateData(null)}

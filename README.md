@@ -67,9 +67,9 @@
   <text x="148" y="150" fill="#6EE7B7" font-size="10.5" font-weight="700">MHA / I4C ALIGNED</text>
 
   <!-- Badge 2: PoA Blockchain -->
-  <rect x="278" y="132" width="170" height="28" rx="6" fill="#1E3A8A" fill-opacity="0.4" stroke="#3B82F6" stroke-width="1" />
+  <rect x="278" y="132" width="175" height="28" rx="6" fill="#1E3A8A" fill-opacity="0.4" stroke="#3B82F6" stroke-width="1" />
   <circle cx="291" cy="146" r="4" fill="#3B82F6" />
-  <text x="301" y="150" fill="#93C5FD" font-size="10.5" font-weight="700">PRAHAR-LEDGER (PoA)</text>
+  <text x="301" y="150" fill="#93C5FD" font-size="10.5" font-weight="700">SENTINEL-LEDGER (PoA)</text>
 
   <!-- Badge 3: Uber H3 Res 8/9 -->
   <rect x="456" y="132" width="168" height="28" rx="6" fill="#78350F" fill-opacity="0.4" stroke="#F59E0B" stroke-width="1" />
@@ -89,7 +89,7 @@
 > **Problem Statement ID**: `SIH26184`  
 > **Organization**: Indian Cyber Crime Coordination Centre (I4C), Ministry of Home Affairs (MHA)  
 > **Theme**: Blockchain & Cybersecurity / Predictive Law Enforcement Analytics  
-> **Core Innovation**: Permissioned Proof-of-Authority (PoA) Consortium Blockchain + Dual-Stage Spatio-Temporal ML + Hardware ATM Interdiction Beacon
+> **Core Innovation**: Permissioned Proof-of-Authority (PoA) Consortium Blockchain (Sentinel-Ledger) + Dual-Stage Spatio-Temporal ML + Hardware ATM Interdiction Beacon
 
 ---
 
@@ -228,7 +228,7 @@ In contemporary financial cybercrime (Digital Arrest scams, APK Trojans, loan-ap
                         TypeScript (Frontend & Geospatial)     v5.x (Strict Typing)
                         C++ (Embedded Hardware Firmware)       Arduino IDE / ESP32 Core
 ---------------------------------------------------------------------------------------------------------
-  Consortium            Prahar-Ledger Engine                   Custom Permissioned PoA Consortium
+  Consortium            Sentinel-Ledger Engine                 Custom Permissioned PoA Consortium
   Blockchain            Asymmetric Signatures                  HMAC-SHA256 / ECDSA Simulation Keypairs
                         Block Verification                     Binary Merkle Tree (Canonical Leaf Hashes)
                         Consortium Stakeholder Nodes           I4C_CENTRAL_ORACLE (Prediction & H3)
@@ -286,7 +286,7 @@ graph TD
         STAGE2 --> SHAP["TreeSHAP Explainer<br/>Top-5 Statutory Factors"]
     end
 
-    subgraph BLOCKCHAIN["3. Prahar-Ledger PoA Consortium Blockchain"]
+    subgraph BLOCKCHAIN["3. Sentinel-Ledger PoA Consortium Blockchain"]
         STAGE1 & STAGE2 --> B1["I4C_CENTRAL_ORACLE<br/>Block #1: AI Horizon & Spatial Hex Lock"]
         B1 --> MERKLE["Binary Merkle Tree<br/>Canonical SHA-256 Leaves"]
         MERKLE --> CHAIN["Immutable Hash-Linked Chain<br/>Header SHA-256 Chaining"]
@@ -312,7 +312,7 @@ graph TD
 
 ## 4. Key Innovation Deep Dives
 
-### A. Prahar-Ledger: Proof-of-Authority (PoA) Consortium Blockchain
+### A. Sentinel-Ledger: Proof-of-Authority (PoA) Consortium Blockchain
 
 #### Why Public Blockchains Are Banned in This Architecture
 Public blockchains like Ethereum, Polygon, or Solana cannot be legally used in national security and law enforcement cybercrime architectures:
@@ -320,7 +320,7 @@ Public blockchains like Ethereum, Polygon, or Solana cannot be legally used in n
 2. **Gas Fee Volatility & Non-Deterministic Latency**: Public block confirmation times (12s to 10 mins) violate the real-time 15-minute interdiction SLA.
 3. **No Statutory Authority**: Evidence presented under Section 63 BSA 2023 requires verification by recognized sovereign authorities, not anonymous public miners.
 
-#### The Prahar Consortium Architecture
+#### The Sentinel Consortium Architecture
 - **Consortium Stakeholders**:
   - `I4C_CENTRAL_ORACLE` (MHA / I4C Spatial AI Oracle)
   - `NPCI_SWITCH_GATEWAY` (National Payments Corporation of India)
@@ -379,7 +379,7 @@ Every prediction produces a court-admissible explanation vector:
 | **Emergency Digital Hold** | Manual Section 102 CrPC notice sent via email (2-4 hours). | **Section 106 BNSS**: Immediate police power to attach or seize property suspected of being stolen or cyber-fraud proceeds. | **Automated API Trigger**: Deploys 15-min card-session delay within 1.4 seconds of ML prediction. |
 | **Kiosk Public Availability** | Police historically sealed the entire ATM room, disrupting the general public. | **Targeted Card-Session Lien**: Only the suspect mule card session is stalled; the physical ATM remains 100% operational for citizens. | Physical ATM kiosk status displays `ACTIVE_FOR_PUBLIC`, while suspect card session is rate-limited. |
 | **Magistrate Reporting** | Manual drafting of seizure memos taking 2-3 days. | **Section 107 BNSS**: Mandatory electronic documentation of attached proceeds to the Judicial Magistrate. | **Automated PDF Docket Engine**: Generates a 4-page formal court docket with FIR metadata, SHAP factors, and Merkle hashes. |
-| **Evidence Admissibility** | Section 65B Indian Evidence Act certificates requiring physical notary signatures. | **Section 63 Bharatiya Sakshya Adhiniyam (BSA), 2023**: Cryptographic hash-chained electronic records recognized as primary evidence. | **Digital Evidence Certificate**: SHA-256 HMAC certificate generated automatically from the Prahar-Ledger. |
+| **Evidence Admissibility** | Section 65B Indian Evidence Act certificates requiring physical notary signatures. | **Section 63 Bharatiya Sakshya Adhiniyam (BSA), 2023**: Cryptographic hash-chained electronic records recognized as primary evidence. | **Digital Evidence Certificate**: SHA-256 HMAC certificate generated automatically from the Sentinel-Ledger. |
 
 ---
 
@@ -412,7 +412,7 @@ pervekkala/
 │   │   ├── docket_routes.py             # Section 106/107 BNSS court PDF docket generator
 │   │   └── surveillance_routes.py       # Edge CCTV video emulator stream & face detection
 │   └── services/
-│       ├── blockchain_engine.py         # PraharConsortiumChain, Merkle Tree, PoA consensus
+│       ├── blockchain_engine.py         # SentinelConsortiumChain, Merkle Tree, PoA consensus
 │       ├── interdiction_service.py      # Sequential interdiction feasibility model
 │       ├── docket_generator.py          # ReportLab 4-page formal legal court PDF engine
 │       ├── hardware_bridge.py           # WebSocket manager for ESP32 & physical ATM beacons
@@ -423,7 +423,7 @@ pervekkala/
 │   │   ├── page.tsx                     # Root redirect to tactical dashboard
 │   │   ├── dashboard/page.tsx           # Live Tactical Command Center (65% Map / 35% Telemetry)
 │   │   ├── simulation/page.tsx          # Judicial Grand Jury Mode (60 FPS Timeline Scrubber)
-│   │   └── blockchain/page.tsx          # Standalone Prahar-Ledger Consortium Block Explorer
+│   │   └── blockchain/page.tsx          # Standalone Sentinel-Ledger Consortium Block Explorer
 │   └── components/
 │       ├── ConsortiumBlockExplorer.tsx  # Live PoA Block visualizer, Merkle tree, & Judge Controls
 │       ├── TacticalMap.tsx              # WebGL Mapbox/MapLibre & Deck.gl geospatial visualizer
@@ -513,7 +513,7 @@ python hardware/mock_hardware_terminal.py
 | Step | Action | What Judges See | What You Say to Judges |
 |---|---|---|---|
 | **1. The Core Problem** | Open `http://localhost:3000/dashboard` | Dark-mode tactical map showing victim in Chennai and target ATM in Goa. | *"Judges, in 90% of organized cyber financial crimes, victims and cash-out points are separated by thousands of kilometers. Aegis decouples victim geography and uses multi-hop mule graph analytics to predict the exact cashout hexagon in advance."* |
-| **2. The Blockchain Ledger** | Click **"⛓️ Blockchain Ledger"** button on top bar. | Sleek glowing block explorer displaying Blocks #0 through #3 with emerald borders. | *"Because law enforcement evidence must be tamper-proof under Section 63 of the Bharatiya Sakshya Adhiniyam, 2023, we built Prahar-Ledger—a Python-native Proof-of-Authority Consortium Blockchain across I4C, NPCI, and State Police."* |
+| **2. The Blockchain Ledger** | Click **"⛓️ Blockchain Ledger"** button on top bar. | Sleek glowing block explorer displaying Blocks #0 through #3 with emerald borders. | *"Because law enforcement evidence must be tamper-proof under Section 63 of the Bharatiya Sakshya Adhiniyam, 2023, we built Sentinel-Ledger—a Python-native Proof-of-Authority Consortium Blockchain across I4C, NPCI, and State Police."* |
 | **3. Live Tamper Demonstration** | Click **"Simulate Tamper Attack"** button. | Explorer border turns flashing red; alert shows `MATHEMATICAL INTEGRITY VIOLATION DETECTED`. | *"Watch this: If an insider attempts to alter a transaction in the database, the binary Merkle root breaks instantly, and the entire chain rejects the forged block."* |
 | **4. Restore & Court Certificate** | Click **"Restore Ledger"**, then click **"Section 63 Certificate"**. | Chain returns to unbroken green; formal digital evidence certificate modal opens. | *"With one click, we restore the authentic state and generate an official Section 63 BSA electronic evidence certificate with cryptographic digital seals for court submission."* |
 | **5. Hardware Lock Trigger** | Switch to Action Panel on Dashboard, click **"Deploy Bank Friction"**. | Terminal ATM mock transitions to Flashing Red `SEC 106 BNSS LOCK`; strobe triggers. | *"Within 1.4 seconds of prediction, a Section 106 BNSS statutory freeze locks the suspect's card session at the physical ATM while keeping the kiosk 100% operational for the public."* |

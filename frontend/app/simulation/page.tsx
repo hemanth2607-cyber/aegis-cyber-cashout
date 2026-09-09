@@ -45,7 +45,7 @@ export default function SimulationPage() {
           <Link
             href="/blockchain"
             className="p-1.5 rounded-lg border border-emerald-500/40 bg-emerald-950/40 text-emerald-300 hover:text-white hover:border-emerald-400 transition-all flex items-center space-x-1 text-xs font-bold"
-            title="Open Prahar Consortium Blockchain Explorer"
+            title="Open Sentinel Consortium Blockchain Explorer"
           >
             <span>⛓️ Blockchain Ledger</span>
           </Link>
